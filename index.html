@@ -1,1498 +1,2361 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b0f14">
-  <title>Journal de travail</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050b18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Journal">
+<title>Journal de travail</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:#0b0f14;color:#e8edf3;font-family:Arial,Helvetica,sans-serif}
-    body{min-height:100vh}
-    button,input,textarea,select{font:inherit}
-    button{cursor:pointer}
-    header{
-      position:sticky;top:0;z-index:20;
-      display:flex;align-items:center;gap:12px;
-      min-height:68px;padding:10px 16px;
-      background:#10161e;
-      border-bottom:1px solid #202936;
-    }
-    .mono{
-      width:42px;height:42px;border-radius:12px;
-      display:flex;align-items:center;justify-content:center;
-      background:#1d2733;border:1px solid #344252;
-      font-weight:800;letter-spacing:.5px
-    }
-    header h1{font-size:18px;margin:0}
-    .sub{font-size:12px;color:#8995a3;margin-top:3px}
-    .clk{margin-left:auto;font-size:12px;color:#9aa7b5}
-    main{max-width:900px;margin:auto;padding:18px 14px 100px}
-    .sec{
-      background:#111821;
-      border:1px solid #202b38;
-      border-radius:16px;
-      padding:16px;
-      margin-bottom:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.15)
-    }
-    .sec h2,.sec h3{margin:0 0 12px}
-    .sec h2{font-size:18px}
-    .sec h3{font-size:15px}
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    @media(max-width:650px){
-      .grid,.grid3{grid-template-columns:1fr}
-    }
-    .card{
-      background:#0d131b;
-      border:1px solid #202b38;
-      border-radius:13px;
-      padding:13px
-    }
-    .stat{font-size:24px;font-weight:800}
-    .muted{color:#8794a3;font-size:13px}
-    .lab{font-size:12px;color:#8996a5;margin:10px 0 5px}
-    input,textarea,select{
-      width:100%;
-      color:#edf2f7;
-      background:#0b1118;
-      border:1px solid #293645;
-      border-radius:10px;
-      padding:11px 12px;
-      outline:none
-    }
-    input:focus,textarea:focus,select:focus{border-color:#5b7188}
-    textarea{min-height:100px;resize:vertical}
-    .bar{display:flex;gap:8px;flex-wrap:wrap}
-    button{
-      border:1px solid #2c3948;
-      background:#17212c;
-      color:#eaf0f5;
-      border-radius:10px;
-      padding:10px 13px
-    }
-    button:hover{background:#202d3b}
-    button.p{
-      background:#e9eef3;
-      color:#0b1015;
-      border-color:#e9eef3;
-      font-weight:700
-    }
-    button.d{background:#29171a;border-color:#51272d}
-    button.ok{background:#15291f;border-color:#29543b}
-    button.warn{background:#2b2515;border-color:#594c25}
-    button:disabled{opacity:.45;cursor:not-allowed}
-    .nav{
-      position:fixed;left:0;right:0;bottom:0;z-index:30;
-      display:flex;justify-content:center;
-      background:#10161e;
-      border-top:1px solid #202936;
-      padding:8px;
-    }
-    .nav button{min-width:90px;background:transparent;border:0}
-    .nav button.active{background:#1c2733}
-    .lg{
-      text-align:center;
-      padding:25px 0 18px
-    }
-    .lgo{
-      width:66px;height:66px;margin:auto;border-radius:18px;
-      display:flex;align-items:center;justify-content:center;
-      background:#1d2733;border:1px solid #344252;
-      font-size:22px;font-weight:900
-    }
-    .lg h2{margin:13px 0 5px}
-    .row{
-      display:flex;align-items:center;justify-content:space-between;
-      gap:10px;padding:11px 0;border-bottom:1px solid #202a35
-    }
-    .row:last-child{border-bottom:0}
-    .badge{
-      display:inline-flex;align-items:center;
-      padding:4px 8px;border-radius:20px;
-      font-size:11px;background:#1a2530;color:#aeb9c5
-    }
-    .badge.ok{background:#153021;color:#8ed3a8}
-    .badge.warn{background:#302815;color:#d9c487}
-    .badge.d{background:#30191c;color:#e4a1a8}
-    .empty{
-      text-align:center;padding:30px 15px;color:#7f8b99
-    }
-    .error{
-      color:#ffb4b4;
-      background:#2a1518;
-      border:1px solid #5c292f;
-      border-radius:10px;
-      padding:11px;
-      font-size:13px;
-      white-space:pre-wrap;
-      word-break:break-word
-    }
-    .success{
-      color:#a9dfbc;
-      background:#13251b;
-      border:1px solid #294b36;
-      border-radius:10px;
-      padding:11px;
-      font-size:13px
-    }
-    .photo{
-      width:100%;max-height:240px;object-fit:cover;
-      border-radius:10px;border:1px solid #263342;margin-top:8px
-    }
-    .ov{
-      display:none;
-      position:fixed;inset:0;z-index:100;
-      background:rgba(0,0,0,.82);
-      align-items:center;justify-content:center;
-      padding:20px
-    }
-    .ov.show{display:flex}
-    .ov img{max-width:95vw;max-height:90vh;border-radius:12px}
-    #toast{
-      position:fixed;left:50%;bottom:76px;
-      transform:translateX(-50%);
-      z-index:200;
-      background:#e9eef3;color:#0b1015;
-      padding:10px 14px;border-radius:10px;
-      display:none;max-width:90vw;
-      font-size:13px
-    }
-    .spinner{
-      width:28px;height:28px;
-      border:3px solid #273341;
-      border-top-color:#e9eef3;
-      border-radius:50%;
-      animation:spin .8s linear infinite;
-      margin:10px auto
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
-  </style>
+<style>
+:root{--bg:#050b18;--card:#0c1a33;--ink:#eaf2ff;--mut:#8a9bb8;--line:#17315c;--nav:#050b18;--acc:#1e6bff;--ai:#fff;--ok:#19c37d;--run:#2f8bff;--pend:#f5a524;--bad:#ff5d5d;--amb:#f5a524;--adm:#2a2110;--al:#6b5320}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(700px 380px at 85% -5%,rgba(30,107,255,.28),transparent 70%),radial-gradient(500px 300px at 0% 35%,rgba(122,92,255,.13),transparent 70%),#050b18;background-attachment:fixed;color:var(--ink);font:15px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:rgba(5,11,24,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #0f2247}
+.mono{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1e6bff,#7a5cff);color:#fff;display:grid;place-items:center;font-weight:700;box-shadow:0 0 16px rgba(47,139,255,.5)}
+header h1{margin:0;font-size:16px;font-weight:600;line-height:1.2}header .sub{color:var(--mut)}header>div:nth-child(2){flex:1;min-width:0}.clk{font-size:18px;font-weight:600;color:#8fc0ff}
+main{max-width:660px;margin:0 auto;padding:12px 14px 100px}
+.sub{font-size:12.5px;color:var(--mut)}
+input,select,textarea{font:inherit;color:var(--ink);background:#07122a;border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%}
+input:focus,select:focus,textarea:focus{border-color:#2f7dff;outline:none;box-shadow:0 0 0 3px rgba(47,125,255,.25)}
+textarea{min-height:56px;resize:vertical;font-size:14px}
+.adm{background:var(--adm);border:1px solid var(--al);border-radius:10px;padding:6px 10px;margin-top:8px}.adm textarea{background:#07122a}
+.sec{background:linear-gradient(180deg,#0e1e3d,#0a1630);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.sec h2{font-size:12px;margin:0 0 10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--mut);display:flex;justify-content:space-between;align-items:center}
+button{font:inherit;font-weight:500;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:#0b1a36;color:var(--ink);padding:10px 12px;transition:transform .12s}
+button:active{transform:scale(.97)}
+button.p{background:linear-gradient(90deg,#1e6bff,#3a8dff);border-color:#2f7dff;color:#fff;font-weight:600;box-shadow:0 4px 18px rgba(30,107,255,.4)}
+button.p.big{width:100%;margin-top:10px;padding:13px}
+button.d{color:var(--bad)}button.g{border:0;background:none;color:var(--mut);font-size:13px}
+:focus-visible{outline:3px solid var(--amb);outline-offset:1px}
+.bar{display:flex;gap:8px;flex-wrap:wrap}.bar>*{flex:1;min-width:120px}
+.hero{background:linear-gradient(135deg,#123a82,#0a1a3c);border-color:#2a5fc4}
+.st{display:flex;align-items:center;gap:12px}.dot{width:14px;height:14px;border-radius:50%;background:var(--mut)}.dot.on{background:var(--ok);box-shadow:0 0 0 5px rgba(25,195,125,.25)}.dot.br{background:var(--pend)}
+.st b{font-size:19px;display:block;line-height:1.2}.hn{margin-inline-start:auto;font-size:26px;font-weight:700}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.tri>div{background:linear-gradient(180deg,#0e1e3d,#0a1630);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}.tri b{display:block;font-size:26px}.tri span{font-size:12px;color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;margin:8px 0}.grid b{display:block;font-size:17px}.grid span{font-size:11.5px;color:var(--mut)}
+.pg{height:6px;background:rgba(255,255,255,.12);border-radius:6px;overflow:hidden;margin:8px 0}.pg i{display:block;height:100%;background:linear-gradient(90deg,#1e6bff,#4da0ff);transition:width .4s}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px}.chips button{white-space:nowrap;padding:5px 14px;border-radius:20px;font-size:13px}.chips .on{background:linear-gradient(90deg,#1e6bff,#3a8dff);border-color:#2f7dff;color:#fff}
+.t{border:1px solid var(--line);border-inline-start:4px solid var(--line);border-radius:12px;margin-top:8px;background:#0a1630}.t.s0{border-inline-start-color:var(--pend)}.t.s1{border-inline-start-color:var(--run)}.t.s2{border-inline-start-color:var(--ok)}
+.th{display:flex;gap:8px;align-items:center;padding:11px;cursor:pointer}.th .n{flex:1;font-weight:600}.t.s2 .n{opacity:.6;text-decoration:line-through}
+.bd{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:8px;white-space:nowrap}
+.s0 .bd{background:rgba(245,165,36,.16);color:var(--pend)}.s1 .bd{background:rgba(47,139,255,.18);color:#6db0ff}.s2 .bd{background:rgba(25,195,125,.16);color:var(--ok)}
+.pr{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}.pr1{background:var(--amb)}.pr2{background:var(--bad)}
+.tb{display:none;padding:0 11px 12px}.t.o .tb{display:block}
+.lab{font-size:12.5px;color:var(--mut);margin:8px 0 3px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.seg .on{background:linear-gradient(90deg,#1e6bff,#3a8dff);border-color:#2f7dff;color:#fff}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ph{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.ph div{position:relative}.ph img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;background:#07122a}
+.ph .x{position:absolute;top:3px;inset-inline-start:3px;background:rgba(0,0,0,.7);color:#fff;border:0;border-radius:50%;width:24px;height:24px;padding:0}
+.h,.rw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #12274d;cursor:pointer}
+.rw>div{flex:1;min-width:0}.rw b{display:block}
+.tag{font-size:11.5px;font-weight:600;color:var(--bad)}.tag.o{color:var(--ok)}
+.pill{font-size:12px;background:rgba(47,139,255,.18);color:#6db0ff;padding:2px 10px;border-radius:12px;text-transform:none;letter-spacing:0}
+.wd{display:flex;justify-content:space-between;padding:0 2px;font-size:11px;color:var(--mut)}
+.dw{display:flex;align-items:center;gap:18px}.dn{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;position:relative;flex:none}
+.dn::after{content:"";position:absolute;inset:15px;border-radius:50%;background:#0a1630}.dn b{position:relative;z-index:1;font-size:22px}
+.lg2{flex:1}.lg2 div{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px}.lg2 i{width:10px;height:10px;border-radius:50%}.lg2 b{margin-inline-start:auto}
+.lg{text-align:center;padding:30px 0 6px}.lgo{width:88px;height:88px;margin:0 auto 14px;border-radius:26px;background:linear-gradient(135deg,#1e6bff,#7a5cff);display:grid;place-items:center;font-size:32px;font-weight:700;box-shadow:0 0 44px rgba(47,139,255,.55)}.lg h2{font-size:26px;margin:0}.lg p{color:var(--mut);margin:4px 0 0}
+.nav{position:fixed;bottom:0;inset-inline:0;background:rgba(5,11,24,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid #12274d;display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:6}.nav:empty{display:none}
+.nav button{flex:1;border:0;border-radius:0;padding:9px 0 8px;background:none;color:var(--mut);font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav .on{color:#4da0ff}.nav .on svg{filter:drop-shadow(0 0 6px rgba(77,160,255,.8))}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:9;padding:12px}.ov.on{display:flex}
+.ov img{max-width:100%;max-height:90%;border-radius:10px}.bx{background:#0a1630;border:1px solid var(--line);padding:12px;border-radius:14px;width:100%;max-width:600px}
+#toast{position:fixed;bottom:84px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:#1e6bff;color:#fff;padding:8px 16px;border-radius:20px;opacity:0;transition:opacity .25s;z-index:10;pointer-events:none}#toast.on{opacity:1}
+.em{text-align:center;color:var(--mut);padding:14px}
+</style>
 </head>
 
 <body>
 
 <header>
-  <div class="mono">JT</div>
+  <div class="mono" id="mn">JT</div>
   <div>
-    <h1>Journal de travail</h1>
-    <div class="sub" id="headSub">Chargement...</div>
+    <h1 id="ttl">Journal de travail</h1>
+    <div class="sub" id="sb"></div>
   </div>
   <div class="clk" id="clk"></div>
 </header>
 
-<main id="app">
-  <section class="sec">
-    <div class="spinner"></div>
-    <div style="text-align:center" class="muted">Chargement de l'application...</div>
-  </section>
-</main>
+<main id="app"></main>
 
-<nav class="nav" id="nv" style="display:none"></nav>
+<nav class="nav" id="nv"></nav>
 
 <div class="ov" id="lb">
-  <img id="lbImg" alt="">
+  <img alt="">
+</div>
+
+<div class="ov" id="sh">
+  <div class="bx">
+    <textarea id="shT" readonly style="min-height:240px"></textarea>
+    <div class="bar" style="margin-top:8px">
+      <button class="p" data-a="cp">Copier</button>
+      <button data-a="cl">Fermer</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-/* =========================================================
-   CONFIGURATION SUPABASE
-   ========================================================= */
+const SB_URL='https://khyeypvhsumpboskcdny.supabase.co';
+const SB_KEY='sb_publishable_5Hf8Zg1mauJRQRKtMSg99A_HI8vVbH2';
 
-const SUPABASE_URL = "https://khyeypvhsumpboskcdny.supabase.co";
-const SUPABASE_KEY = "sb_publishable_5Hf8Zg1mauJRQRKtMSg99A_HI8vVbH2";
+const $=s=>document.querySelector(s);
+const sb=supabase.createClient(SB_URL,SB_KEY);
 
-let sb = null;
-let me = null;
-let prof = null;
-let currentView = "dash";
-let currentDay = today();
-let days = {};
-let team = [];
-let selectedEmployee = null;
-let selectedEmployeeDays = [];
-let selectedTeamDay = null;
+let me=null;
+let prof=null;
+let days={};
+let rev={};
+let view='dash';
+let flt=-1;
 
-/* =========================================================
-   BASIC HELPERS
-   ========================================================= */
+let team=[];
+let teamSel=null;
+let teamDay=null;
+let tdays=[];
+let trev={};
 
-function $(id){
-  return document.getElementById(id);
-}
+let ords=[];
+let tords=[];
 
-function esc(v){
-  return String(v ?? "")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-}
+const ds=d=>{
+  return d.getFullYear()+'-'+
+    String(d.getMonth()+1).padStart(2,'0')+'-'+
+    String(d.getDate()).padStart(2,'0');
+};
 
-function today(){
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const day = String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
-}
+const today=()=>ds(new Date());
+let cur=today();
 
-function fmtDate(v){
-  if(!v) return "";
-  const d = new Date(v + "T12:00:00");
-  if(isNaN(d)) return v;
-  return d.toLocaleDateString("fr-FR",{
-    weekday:"short",
-    day:"2-digit",
-    month:"2-digit",
-    year:"numeric"
+const open=new Set();
+const urls={};
+const dirty=new Set();
+const mt={};
+
+const ST=['Nouvelle','En cours','Terminée'];
+const PR=['Normale','Importante','Urgente'];
+
+const hm=t=>{
+  if(!t)return '—';
+  return new Date(t).toLocaleTimeString('fr-FR',{
+    hour:'2-digit',
+    minute:'2-digit'
   });
-}
+};
 
-function fmtTime(v){
-  if(!v) return "--:--";
-  const d = new Date(v);
-  if(isNaN(d)) return String(v).slice(0,5);
-  return d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
-}
+const dur=m=>{
+  m=Math.max(0,Number(m)||0);
+  return Math.floor(m/60)+' h '+String(m%60).padStart(2,'0');
+};
 
-function toast(msg){
-  const x = $("toast");
-  if(!x) return;
-  x.textContent = msg;
-  x.style.display = "block";
+const esc=s=>{
+  return String(s??'').replace(/[&<>"]/g,c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;'
+  }[c]));
+};
+
+const day=(k=cur)=>{
+  const d=days[k]||(days[k]={});
+  d.brk=d.brk||[];
+  d.tasks=d.tasks||[];
+  d.loc=d.loc||'';
+  d.note=d.note||'';
+  return d;
+};
+
+const R=(k,t='')=>(rev[k]&&rev[k][t])||{};
+
+function toast(m){
+  const x=$('#toast');
+  if(!x)return;
+  x.textContent=m;
+  x.classList.add('on');
   clearTimeout(window.__toast);
-  window.__toast = setTimeout(()=>{
-    x.style.display = "none";
-  },2800);
+  window.__toast=setTimeout(()=>x.classList.remove('on'),2400);
 }
 
-function showError(title,error){
-  const message = error?.message || String(error || "Erreur inconnue");
-  $("app").innerHTML = `
-    <section class="sec">
-      <h2>${esc(title)}</h2>
-      <div class="error">${esc(message)}</div>
-      <div class="bar" style="margin-top:12px">
-        <button class="p" data-a="reload">Réessayer</button>
-        <button data-a="logout">Retour</button>
-      </div>
-    </section>
-  `;
-}
+function stats(d,live=false,startOverride){
+  let inAt=d.inAt||null;
+  let outAt=d.outAt||null;
 
-function startClock(){
-  const tick=()=>{
-    const d=new Date();
-    $("clk").textContent=d.toLocaleTimeString("fr-FR",{
-      hour:"2-digit",
-      minute:"2-digit",
-      second:"2-digit"
-    });
-  };
-  tick();
-  setInterval(tick,1000);
-}
+  let total=0;
 
-/* =========================================================
-   DATABASE HELPERS
-   ========================================================= */
+  if(inAt){
+    const end=outAt?new Date(outAt):new Date();
+    total=Math.max(
+      0,
+      Math.floor((end-new Date(inAt))/60000)
+    );
+  }
 
-async function getProfile(userId){
-  const r = await sb
-    .from("profiles")
-    .select("*")
-    .eq("id",userId)
-    .maybeSingle();
+  const breaks=(d.brk||[]).reduce((a,b)=>{
+    if(b.s&&b.e){
+      return a+Math.max(
+        0,
+        Math.floor((new Date(b.e)-new Date(b.s))/60000)
+      );
+    }
+    return a;
+  },0);
 
-  if(r.error) throw r.error;
+  const work=Math.max(0,total-breaks);
 
-  if(r.data) return r.data;
+  const done=(d.tasks||[]).filter(t=>Number(t.s)===2).length;
+  const all=(d.tasks||[]).length;
 
   return {
-    id:userId,
-    name:me?.user_metadata?.name || me?.email || "",
-    role:"employee",
-    start:"08:00",
-    h:8
+    total,
+    breaks,
+    work,
+    done,
+    all,
+    pct:all?Math.round(done/all*100):0
   };
 }
 
-/*
-  The application accepts several possible column names so that
-  small schema differences do not crash the interface.
-*/
+async function save(k=cur){
+  dirty.add(k);
 
-function normalizeDay(row){
-  if(!row) return null;
+  clearTimeout(mt[k]);
 
-  return {
-    raw:row,
-    id:row.id,
-    day:row.day || row.date || row.work_day || currentDay,
-    in_at:
-      row.in_at ||
-      row.clock_in ||
-      row.start_at ||
-      row.entry_at ||
-      null,
-    out_at:
-      row.out_at ||
-      row.clock_out ||
-      row.end_at ||
-      row.exit_at ||
-      null,
-    notes:
-      row.notes ||
-      row.note ||
-      row.observations ||
-      "",
-    tasks:
-      row.tasks ||
-      row.task ||
-      "",
-    status:
-      row.status ||
-      row.validation ||
-      "pending",
-    review:
-      row.review ||
-      row.manager_note ||
-      ""
-  };
+  mt[k]=setTimeout(async()=>{
+    await flush(k);
+  },500);
 }
 
-async function loadMyDays(){
-  if(!me) return;
+async function flush(k){
+  if(!me||!days[k])return;
 
-  const r = await sb
-    .from("days")
-    .select("*")
-    .eq("user_id",me.id)
-    .order("day",{ascending:false})
-    .limit(100);
+  const payload={
+    user_id:me.id,
+    day:k,
+    data:days[k],
+    updated_at:new Date().toISOString()
+  };
+
+  const r=await sb
+    .from('days')
+    .upsert(payload,{onConflict:'user_id,day'});
 
   if(r.error){
-    console.warn("days:",r.error);
-    days = {};
+    toast('Erreur sauvegarde: '+r.error.message);
     return;
   }
 
-  days = {};
-
-  (r.data || []).forEach(row=>{
-    const d = normalizeDay(row);
-    if(d && d.day) days[d.day]=d;
-  });
+  dirty.delete(k);
 }
 
-function getDay(day=currentDay){
-  return days[day] || {
-    day,
-    in_at:null,
-    out_at:null,
-    notes:"",
-    tasks:"",
-    status:"pending",
-    review:""
+async function saveProf(){
+  if(!me||!prof)return;
+
+  const payload={
+    name:prof.name||'',
+    matricule:prof.matricule||'',
+    job:prof.job||'',
+    dep:prof.dep||'',
+    co:prof.co||'',
+    mgr:prof.mgr||'',
+    start:prof.start||'08:00',
+    h:Number(prof.h)||8
   };
+
+  const r=await sb
+    .from('profiles')
+    .update(payload)
+    .eq('id',me.id);
+
+  if(r.error){
+    toast('Erreur profil: '+r.error.message);
+  }
 }
 
-/* =========================================================
-   AUTH
-   ========================================================= */
+function grp(arr,key){
+  const o={};
 
-function renderLogin(){
-  $("headSub").textContent = "Connexion";
+  (arr||[]).forEach(x=>{
+    const k=x[key];
+    if(!o[k])o[k]=[];
+    o[k].push(x);
+  });
 
-  $("nv").style.display="none";
+  return o;
+}
 
-  $("app").innerHTML=`
-    <div class="lg">
+async function loadMine(){
+  if(!me)return;
+
+  const d=await sb
+    .from('days')
+    .select('*')
+    .eq('user_id',me.id)
+    .order('day',{ascending:false})
+    .limit(120);
+
+  if(d.error){
+    toast('Erreur chargement des journées');
+    return;
+  }
+
+  days={};
+
+  (d.data||[]).forEach(x=>{
+    days[x.day]=x.data||{};
+  });
+
+  const r=await sb
+    .from('reviews')
+    .select('*')
+    .eq('user_id',me.id)
+    .order('day',{ascending:false})
+    .limit(500);
+
+  if(r.error){
+    toast('Erreur chargement des validations');
+    rev={};
+  }else{
+    rev=grp(r.data||[],'day');
+    Object.keys(rev).forEach(k=>{
+      rev[k]=grp(rev[k],'task_id');
+      Object.keys(rev[k]).forEach(t=>{
+        rev[k][t]=rev[k][t][0]||{};
+      });
+    });
+  }
+
+  const o=await sb
+    .from('orders')
+    .select('*')
+    .eq('employee_id',me.id)
+    .order('created_at',{ascending:false})
+    .limit(100);
+
+  if(o.error){
+    ords=[];
+  }else{
+    ords=o.data||[];
+  }
+}
+
+async function loadTeam(){
+  if(!me)return;
+
+  const r=await sb
+    .from('profiles')
+    .select('*')
+    .order('name',{ascending:true});
+
+  if(r.error){
+    toast('Erreur chargement équipe');
+    team=[];
+    return;
+  }
+
+  team=(r.data||[]).filter(x=>x.id!==me.id);
+}
+
+async function openEmp(id){
+  teamSel=id;
+  teamDay=null;
+  tdays=[];
+  trev={};
+  tords=[];
+
+  const d=await sb
+    .from('days')
+    .select('*')
+    .eq('user_id',id)
+    .order('day',{ascending:false})
+    .limit(120);
+
+  if(d.error){
+    toast('Erreur chargement salarié');
+    return;
+  }
+
+  tdays=d.data||[];
+
+  const r=await sb
+    .from('reviews')
+    .select('*')
+    .eq('user_id',id)
+    .order('day',{ascending:false})
+    .limit(500);
+
+  if(!r.error){
+    const a=r.data||[];
+
+    a.forEach(x=>{
+      if(!trev[x.day])trev[x.day]={};
+      trev[x.day][x.task_id||'']=x;
+    });
+  }
+
+  const o=await sb
+    .from('orders')
+    .select('*')
+    .eq('employee_id',id)
+    .order('created_at',{ascending:false})
+    .limit(100);
+
+  if(!o.error){
+    tords=o.data||[];
+  }
+
+  render();
+}
+
+async function init(){
+  const s=await sb.auth.getSession();
+
+  me=s.data.session?.user||null;
+
+  if(!me){
+    prof=null;
+    days={};
+    rev={};
+    team=[];
+    teamSel=null;
+    teamDay=null;
+    ords=[];
+    tords=[];
+    render();
+    return;
+  }
+
+  const p=await sb
+    .from('profiles')
+    .select('*')
+    .eq('id',me.id)
+    .maybeSingle();
+
+  if(p.error){
+    toast('Erreur profil: '+p.error.message);
+    prof=null;
+  }else{
+    prof=p.data;
+  }
+
+  if(!prof){
+    const ins=await sb
+      .from('profiles')
+      .insert({
+        id:me.id,
+        name:me.user_metadata?.name||'',
+        role:'employee'
+      })
+      .select()
+      .single();
+
+    if(!ins.error){
+      prof=ins.data;
+    }
+  }
+
+  if(!prof){
+    prof={
+      id:me.id,
+      name:me.user_metadata?.name||'',
+      role:'employee',
+      start:'08:00',
+      h:8
+    };
+  }
+
+  if(prof.role==='manager'){
+    await loadTeam();
+    if(view!=='more'&&view!=='team')view='team';
+  }else{
+    teamSel=null;
+    teamDay=null;
+    await loadMine();
+
+    if(view==='team')view='dash';
+  }
+
+  render();
+}
+
+function navIcon(name){
+  const icons={
+    dash:'⌂',
+    today:'✓',
+    hist:'▣',
+    team:'♟',
+    more:'☰'
+  };
+
+  return icons[name]||'•';
+}
+
+function btns(){
+  const manager=prof?.role==='manager';
+
+  const arr=manager
+    ? [
+        ['team','Équipe'],
+        ['more','Plus']
+      ]
+    : [
+        ['dash','Accueil'],
+        ['today',"Aujourd'hui"],
+        ['hist','Historique'],
+        ['more','Plus']
+      ];
+
+  return arr.map(([v,t])=>{
+    return `
+      <button class="${view===v?'on':''}" data-v="${v}">
+        <span style="font-size:18px">${navIcon(v)}</span>
+        <span>${t}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function render(){
+  const nav=$('#nv');
+  const app=$('#app');
+
+  if(!me){
+    $('#mn').textContent='JT';
+    $('#ttl').textContent='Journal de travail';
+    $('#sb').textContent='';
+    nav.innerHTML='';
+    app.innerHTML=rLogin();
+    live();
+    return;
+  }
+
+  const name=prof?.name||me.email?.split('@')[0]||'Utilisateur';
+  const initials=name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0,2)
+    .map(x=>x[0])
+    .join('')
+    .toUpperCase()||'JT';
+
+  $('#mn').textContent=initials;
+
+  if(prof?.role==='manager'){
+    $('#ttl').textContent='Journal de travail';
+    $('#sb').textContent='Responsable · '+name;
+  }else{
+    $('#ttl').textContent='Journal de travail';
+    $('#sb').textContent=name;
+  }
+
+  nav.innerHTML=btns();
+
+  if(prof?.role==='manager'){
+    if(view==='team'){
+      app.innerHTML=rTeam();
+    }else{
+      app.innerHTML=rMore();
+    }
+  }else{
+    if(view==='dash'){
+      app.innerHTML=rDash();
+    }else if(view==='today'){
+      app.innerHTML=rToday();
+    }else if(view==='hist'){
+      app.innerHTML=rHist();
+    }else{
+      app.innerHTML=rMore();
+    }
+  }
+
+  live();
+  setTimeout(hydrate,0);
+}
+
+function live(){
+  const now=new Date();
+
+  $('#clk').textContent=now.toLocaleTimeString('fr-FR',{
+    hour:'2-digit',
+    minute:'2-digit'
+  });
+
+  if(!me)return;
+
+  const d=day(cur);
+  const st=stats(
+    d,
+    cur===today(),
+    prof?.start||'08:00'
+  );
+
+  const liveEl=$('#liveWork');
+
+  if(liveEl){
+    liveEl.textContent=dur(st.work);
+  }
+
+  const statusEl=$('#liveStatus');
+
+  if(statusEl){
+    statusEl.textContent=d.outAt
+      ? 'Journée terminée'
+      : d.inAt
+        ? 'Présent'
+        : 'Non commencé';
+  }
+}
+
+async function hydrate(){
+  const imgs=[...document.querySelectorAll('img[data-photo]')];
+
+  for(const img of imgs){
+    const path=img.dataset.photo;
+
+    if(!path)continue;
+
+    if(urls[path]){
+      img.src=urls[path];
+      continue;
+    }
+
+    const r=await sb.storage
+      .from('photos')
+      .createSignedUrl(path,3600);
+
+    if(!r.error&&r.data?.signedUrl){
+      urls[path]=r.data.signedUrl;
+      img.src=r.data.signedUrl;
+    }
+  }
+}
+
+function rLogin(){
+  return `
+    <section class="lg">
       <div class="lgo">JT</div>
-      <h2>Journal de travail</h2>
-      <div class="muted">Présence, tâches et rapports en toute simplicité</div>
-    </div>
+      <h2>Journal</h2>
+      <p>Suivi de présence et des tâches</p>
+    </section>
 
     <section class="sec">
       <h2>Connexion</h2>
 
-      <div class="lab">E-mail</div>
-      <input id="em" type="email" autocomplete="username"
-             placeholder="nom@exemple.com">
+      <div class="lab">Email</div>
+      <input id="em" type="email" autocomplete="username">
 
       <div class="lab">Mot de passe</div>
-      <input id="pw" type="password" autocomplete="current-password"
-             placeholder="Minimum 6 caractères">
+      <input id="pw" type="password" autocomplete="current-password">
 
-      <div id="loginMsg"></div>
+      <button class="p big" data-a="li">Se connecter</button>
 
-      <div class="bar" style="margin-top:14px">
-        <button class="p" data-a="login">Se connecter</button>
-        <button data-a="signup">Créer un compte</button>
-      </div>
+      <div class="sub" id="loginMsg" style="margin-top:10px"></div>
     </section>
 
     <section class="sec">
-      <div class="muted">
-        Le compte administrateur et le compte technicien sont gérés
-        directement par Supabase.
-      </div>
+      <h2>Créer un compte</h2>
+
+      <div class="lab">Nom</div>
+      <input id="sn">
+
+      <div class="lab">Email</div>
+      <input id="se" type="email">
+
+      <div class="lab">Mot de passe</div>
+      <input id="sp" type="password" autocomplete="new-password">
+
+      <button class="big" data-a="su">Créer le compte</button>
+
+      <div class="sub" id="signupMsg" style="margin-top:10px"></div>
     </section>
   `;
 }
 
-async function login(){
-  const email=$("em")?.value.trim();
-  const password=$("pw")?.value;
+function rDash(){
+  const d=day(today());
+  const s=stats(d,true);
 
-  if(!email || !password){
-    $("loginMsg").innerHTML=`<div class="error">E-mail et mot de passe obligatoires.</div>`;
-    return;
-  }
+  const taskHtml=tHTML(d.tasks||[]);
 
-  $("loginMsg").innerHTML=`<div class="muted">Connexion...</div>`;
+  return `
+    <section class="sec hero">
+      <div class="st">
+        <span class="dot ${d.outAt?'':'on'}"></span>
+        <div>
+          <b id="liveStatus">${d.outAt?'Journée terminée':d.inAt?'Présent':'Non commencé'}</b>
+          <span class="sub">${today()}</span>
+        </div>
+        <span class="hn" id="liveWork">${dur(s.work)}</span>
+      </div>
 
-  const r=await sb.auth.signInWithPassword({
-    email,
-    password
-  });
+      <div class="bar" style="margin-top:12px">
+        ${
+          !d.inAt
+          ? `<button class="p" data-a="in">Commencer</button>`
+          : !d.outAt
+            ? `<button class="p" data-a="out">Terminer</button>`
+            : `<button data-a="td">Voir la journée</button>`
+        }
+        <button data-a="bs">${d.brk.some(x=>x.s&&!x.e)?'Fin pause':'Pause'}</button>
+      </div>
+    </section>
 
-  if(r.error){
-    $("loginMsg").innerHTML=`<div class="error">${esc(r.error.message)}</div>`;
-    return;
-  }
+    <section class="tri">
+      <div>
+        <b>${s.work}</b>
+        <span>Minutes travaillées</span>
+      </div>
+      <div>
+        <b>${s.done}</b>
+        <span>Tâches terminées</span>
+      </div>
+      <div>
+        <b>${s.all}</b>
+        <span>Tâches</span>
+      </div>
+    </section>
 
-  await init();
+    <section class="sec">
+      <h2>
+        Aujourd'hui
+        <span class="pill">${s.pct}%</span>
+      </h2>
+
+      <div class="pg">
+        <i style="width:${s.pct}%"></i>
+      </div>
+
+      ${taskHtml}
+    </section>
+
+    ${oHTML(ords)}
+
+    <section class="sec">
+      <h2>Lieu et remarques</h2>
+
+      <div class="lab">Lieu / chantier</div>
+      <input data-d="loc" value="${esc(d.loc)}" placeholder="Lieu de travail">
+
+      <div class="lab">Note de la journée</div>
+      <textarea data-d="note" placeholder="Ajouter une remarque...">${esc(d.note)}</textarea>
+    </section>
+  `;
 }
 
-async function signup(){
-  const email=$("em")?.value.trim();
-  const password=$("pw")?.value;
+function rToday(){
+  const d=day(cur);
+  const s=stats(d,cur===today());
 
-  if(!email || !password){
-    $("loginMsg").innerHTML=`<div class="error">E-mail et mot de passe obligatoires.</div>`;
-    return;
+  return `
+    <section class="sec">
+      <div class="bar">
+        <button data-a="prev">‹</button>
+        <input id="datePick" type="date" value="${cur}">
+        <button data-a="next">›</button>
+      </div>
+    </section>
+
+    <section class="sec hero">
+      <div class="st">
+        <span class="dot ${d.outAt?'':'on'}"></span>
+        <div>
+          <b>${d.outAt?'Journée terminée':d.inAt?'Présent':'Non commencé'}</b>
+          <span class="sub">${cur}</span>
+        </div>
+        <span class="hn">${dur(s.work)}</span>
+      </div>
+
+      <div class="grid">
+        <div>
+          <b>${hm(d.inAt)}</b>
+          <span>Entrée</span>
+        </div>
+        <div>
+          <b>${hm(d.outAt)}</b>
+          <span>Sortie</span>
+        </div>
+        <div>
+          <b>${dur(s.breaks)}</b>
+          <span>Pause</span>
+        </div>
+        <div>
+          <b>${s.pct}%</b>
+          <span>Progression</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Tâches</h2>
+      ${tHTML(d.tasks||[])}
+      <button class="p big" data-a="add">+ Ajouter une tâche</button>
+    </section>
+
+    ${oHTML(ords.filter(o=>o.day===cur))}
+
+    <section class="sec">
+      <h2>Journal</h2>
+
+      <div class="lab">Lieu / chantier</div>
+      <input data-d="loc" value="${esc(d.loc)}">
+
+      <div class="lab">Remarques</div>
+      <textarea data-d="note">${esc(d.note)}</textarea>
+    </section>
+  `;
+}
+
+function tHTML(list){
+  const arr=list||[];
+
+  if(!arr.length){
+    return `<div class="em">Aucune tâche pour cette journée.</div>`;
   }
 
-  if(password.length<6){
-    $("loginMsg").innerHTML=`<div class="error">Le mot de passe doit contenir au moins 6 caractères.</div>`;
-    return;
+  return arr.map((t,i)=>{
+    const id=String(t.id??i);
+    const s=Number(t.s)||0;
+    const p=Number(t.pr)||0;
+    const isOpen=open.has(id);
+
+    const photos=(t.p||[]).map(path=>{
+      return `
+        <div>
+          <img
+            data-photo="${esc(path)}"
+            alt=""
+            data-a="zm"
+            data-path="${esc(path)}"
+          >
+          <button
+            class="x"
+            data-a="rp"
+            data-path="${esc(path)}"
+            data-id="${esc(id)}"
+          >×</button>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="t s${s} ${isOpen?'o':''}" data-task="${esc(id)}">
+
+        <div class="th" data-a="tg">
+          <span class="pr pr${p}"></span>
+          <span class="n">${esc(t.n||'Nouvelle tâche')}</span>
+          <span class="bd">${ST[s]}</span>
+        </div>
+
+        <div class="tb">
+
+          <div class="lab">Tâche</div>
+          <input
+            data-f="n"
+            value="${esc(t.n||'')}"
+            placeholder="Description de la tâche"
+          >
+
+          <div class="two">
+            <div>
+              <div class="lab">Priorité</div>
+              <select data-f="pr">
+                ${PR.map((x,j)=>`
+                  <option value="${j}" ${p===j?'selected':''}>${x}</option>
+                `).join('')}
+              </select>
+            </div>
+
+            <div>
+              <div class="lab">Catégorie</div>
+              <input
+                data-f="cat"
+                value="${esc(t.cat||'')}"
+                placeholder="Catégorie"
+              >
+            </div>
+          </div>
+
+          <div class="lab">Matériel / référence</div>
+          <input
+            data-f="mat"
+            value="${esc(t.mat||'')}"
+            placeholder="Matériel, ticket, client..."
+          >
+
+          <div class="lab">Note</div>
+          <textarea data-f="note" placeholder="Détails...">${esc(t.note||'')}</textarea>
+
+          <div class="lab">Statut</div>
+          <div class="seg">
+            ${ST.map((x,j)=>`
+              <button
+                data-a="set"
+                data-id="${esc(id)}"
+                data-v="${j}"
+                class="${s===j?'on':''}"
+              >${x}</button>
+            `).join('')}
+          </div>
+
+          <div class="bar" style="margin-top:8px">
+            <button data-a="cam" data-id="${esc(id)}">📷 Photo</button>
+            <button data-a="gal" data-id="${esc(id)}">Galerie</button>
+            <button class="d" data-a="del" data-id="${esc(id)}">Supprimer</button>
+          </div>
+
+          <div class="ph">${photos}</div>
+
+          <div class="sub" style="margin-top:8px">
+            Début: ${hm(t.st)} · Fin: ${hm(t.en)}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function rHist(){
+  const keys=Object.keys(days)
+    .sort()
+    .reverse();
+
+  if(!keys.length){
+    return `
+      <section class="sec">
+        <h2>Historique</h2>
+        <div class="em">Aucune journée enregistrée.</div>
+      </section>
+    `;
   }
 
-  $("loginMsg").innerHTML=`<div class="muted">Création du compte...</div>`;
+  return `
+    <section class="sec">
+      <h2>Historique</h2>
 
-  const r=await sb.auth.signUp({
-    email,
-    password,
-    options:{
-      data:{
-        name:email.split("@")[0]
+      <div class="chips">
+        <button class="${flt===-1?'on':''}" data-a="fl" data-v="-1">Toutes</button>
+        <button class="${flt===0?'on':''}" data-a="fl" data-v="0">À vérifier</button>
+        <button class="${flt===1?'on':''}" data-a="fl" data-v="1">Terminées</button>
+      </div>
+
+      ${keys.map(k=>{
+        const d=days[k];
+        const s=stats(d,false);
+
+        const validation=R(k,'');
+        const done=!!validation.validated_at;
+
+        if(flt===0&&done)return '';
+        if(flt===1&&!done)return '';
+
+        return `
+          <div class="rw" data-a="go" data-k="${k}">
+            <div>
+              <b>${k}</b>
+              <span class="sub">
+                ${s.done}/${s.all} tâches · ${dur(s.work)}
+              </span>
+            </div>
+
+            <span class="tag ${done?'o':''}">
+              ${done?'Validée':'À vérifier'}
+            </span>
+          </div>
+        `;
+      }).join('')}
+    </section>
+  `;
+}
+
+function rMore(){
+  if(!me)return '';
+
+  const manager=prof?.role==='manager';
+
+  return `
+    <section class="sec">
+      <h2>${manager?'Compte responsable':'Mon profil'}</h2>
+
+      <div class="lab">Nom</div>
+      <input data-s="name" value="${esc(prof?.name||'')}">
+
+      <div class="lab">Matricule</div>
+      <input data-s="matricule" value="${esc(prof?.matricule||'')}">
+
+      <div class="lab">Fonction</div>
+      <input data-s="job" value="${esc(prof?.job||'')}">
+
+      <div class="lab">Département</div>
+      <input data-s="dep" value="${esc(prof?.dep||'')}">
+
+      <div class="lab">Entreprise</div>
+      <input data-s="co" value="${esc(prof?.co||'')}">
+
+      <div class="lab">Responsable</div>
+      <input data-s="mgr" value="${esc(prof?.mgr||'')}">
+
+      <div class="two">
+        <div>
+          <div class="lab">Heure de début</div>
+          <input data-s="start" type="time" value="${esc(prof?.start||'08:00')}">
+        </div>
+
+        <div>
+          <div class="lab">Heures / jour</div>
+          <input data-s="h" type="number" step=".25" value="${Number(prof?.h)||8}">
+        </div>
+      </div>
+
+      <button class="p big" data-a="saveprofile">Enregistrer</button>
+    </section>
+
+    <section class="sec">
+      <h2>Compte</h2>
+
+      <div class="sub">${esc(me.email||'')}</div>
+
+      <button class="big" data-a="rep">Exporter le rapport</button>
+      <button class="big" data-a="rf">Actualiser</button>
+      <button class="big d" data-a="lo">Se déconnecter</button>
+    </section>
+  `;
+}
+
+function oHTML(list){
+  const arr=(list||[]).slice();
+
+  if(!arr.length){
+    return `
+      <section class="sec">
+        <h2>Ordres de la direction</h2>
+        <div class="em">Aucun ordre.</div>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="sec">
+      <h2>
+        Ordres de la direction
+        <span class="pill">${arr.length}</span>
+      </h2>
+
+      ${arr.map(o=>{
+        const s=Math.max(0,Math.min(2,Number(o.status)||0));
+        const p=Math.max(0,Math.min(2,Number(o.priority)||0));
+
+        return `
+          <div class="t s${s}">
+            <div class="th" style="cursor:default">
+              <span class="pr pr${p}"></span>
+              <span class="n">${esc(o.title||'Ordre')}</span>
+              <span class="bd">${ST[s]}</span>
+            </div>
+
+            <div class="tb" style="display:block">
+              <div class="sub">
+                ${esc(o.day||'')}
+                ${o.manager_name?' · '+esc(o.manager_name):''}
+              </div>
+
+              ${
+                o.note
+                ? `<div style="margin-top:7px">${esc(o.note)}</div>`
+                : ''
+              }
+
+              <div class="seg" style="margin-top:9px">
+                ${ST.map((x,j)=>`
+                  <button
+                    data-a="os"
+                    data-id="${esc(o.id)}"
+                    data-v="${j}"
+                    class="${s===j?'on':''}"
+                  >${x}</button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </section>
+  `;
+}
+
+function rTeam(){
+  if(!teamSel){
+    return `
+      <section class="sec">
+        <h2>
+          Équipe
+          <span class="pill">${team.length}</span>
+        </h2>
+
+        ${
+          team.length
+          ? team.map(e=>{
+              const isManager=e.role==='manager';
+
+              return `
+                <div class="rw" style="cursor:default">
+                  <div data-a="emp" data-id="${esc(e.id)}" style="cursor:pointer">
+                    <b>${esc(e.name||'Sans nom')}</b>
+                    <span class="sub">
+                      ${esc(e.job||'')}
+                      ${e.dep?' · '+esc(e.dep):''}
+                    </span>
+                  </div>
+
+                  <button
+                    data-a="role"
+                    data-id="${esc(e.id)}"
+                    data-r="${isManager?'employee':'manager'}"
+                  >
+                    ${isManager?'Retirer resp.':'Nommer resp.'}
+                  </button>
+                </div>
+              `;
+            }).join('')
+          : `<div class="em">Aucun salarié.</div>`
+        }
+      </section>
+    `;
+  }
+
+  const emp=team.find(x=>x.id===teamSel);
+
+  if(!emp){
+    teamSel=null;
+    return rTeam();
+  }
+
+  if(teamDay){
+    return rManagerDay(emp);
+  }
+
+  return `
+    <section class="sec hero">
+      <div class="st">
+        <div>
+          <b>${esc(emp.name||'Sans nom')}</b>
+          <span class="sub">
+            ${esc(emp.job||'')}
+            ${emp.dep?' · '+esc(emp.dep):''}
+          </span>
+        </div>
+      </div>
+
+      <div class="bar" style="margin-top:10px">
+        <button data-a="back">‹ Équipe</button>
+        <button data-a="refreshEmp">Actualiser</button>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Donner un ordre</h2>
+
+      <div class="lab">Titre</div>
+      <input id="ot" placeholder="Ex. Intervention client...">
+
+      <div class="lab">Note</div>
+      <textarea id="on" placeholder="Instructions..."></textarea>
+
+      <div class="two">
+        <div>
+          <div class="lab">Date</div>
+          <input id="od" type="date" value="${today()}">
+        </div>
+
+        <div>
+          <div class="lab">Priorité</div>
+          <select id="op">
+            <option value="0">Normale</option>
+            <option value="1">Importante</option>
+            <option value="2">Urgente</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="p big" data-a="oadd">Envoyer l'ordre</button>
+    </section>
+
+    <section class="sec">
+      <h2>Ordres envoyés</h2>
+      ${oHTML(tords)}
+    </section>
+
+    <section class="sec">
+      <h2>Journées enregistrées</h2>
+
+      ${
+        tdays.length
+        ? tdays.map(x=>{
+            const d=x.data||{};
+            const s=stats(d,false,emp.start||'08:00');
+            const rv=trev[x.day]?.[''];
+
+            return `
+              <div class="rw" data-a="eday" data-k="${x.day}">
+                <div>
+                  <b>${x.day}</b>
+                  <span class="sub">
+                    ${s.done}/${s.all} tâches · ${dur(s.work)}
+                  </span>
+                </div>
+
+                <span class="tag ${rv?.validated_at?'o':''}">
+                  ${rv?.validated_at?'Validée':'À vérifier'}
+                </span>
+              </div>
+            `;
+          }).join('')
+        : `<div class="em">Aucune journée.</div>`
       }
-    }
-  });
-
-  if(r.error){
-    $("loginMsg").innerHTML=`<div class="error">${esc(r.error.message)}</div>`;
-    return;
-  }
-
-  if(!r.data.session){
-    $("loginMsg").innerHTML=`
-      <div class="success">
-        Compte créé. Vérifiez votre e-mail si la confirmation est activée,
-        puis connectez-vous.
-      </div>`;
-    return;
-  }
-
-  await init();
-}
-
-async function logout(){
-  try{
-    await sb.auth.signOut();
-  }catch(e){
-    console.warn(e);
-  }
-
-  me=null;
-  prof=null;
-  days={};
-  team=[];
-  selectedEmployee=null;
-  selectedEmployeeDays=[];
-  selectedTeamDay=null;
-  renderLogin();
-}
-
-/* =========================================================
-   NAVIGATION
-   ========================================================= */
-
-function renderNav(){
-  if(!me){
-    $("nv").style.display="none";
-    return;
-  }
-
-  $("nv").style.display="flex";
-
-  let html="";
-
-  if(prof?.role==="manager"){
-    html+=`
-      <button class="${currentView==="team"?"active":""}" data-a="team">
-        👥 Équipe
-      </button>`;
-  }
-
-  html+=`
-    <button class="${currentView==="dash"?"active":""}" data-a="dash">
-      🏠 Accueil
-    </button>
-    <button class="${currentView==="day"?"active":""}" data-a="day">
-      📋 Aujourd'hui
-    </button>
-    <button class="${currentView==="history"?"active":""}" data-a="history">
-      🗓 Historique
-    </button>
-    <button class="${currentView==="more"?"active":""}" data-a="more">
-      ⚙️ Plus
-    </button>
-  `;
-
-  $("nv").innerHTML=html;
-}
-
-/* =========================================================
-   EMPLOYEE DASHBOARD
-   ========================================================= */
-
-function renderDashboard(){
-  const d=getDay();
-
-  const workedIn=d.in_at ? "Présent" : "Non pointé";
-  const workedOut=d.out_at ? "Terminé" : "En cours";
-
-  $("headSub").textContent =
-    `${prof?.name || me.email} · ${prof?.role==="manager"?"Manager":"Technicien"}`;
-
-  $("app").innerHTML=`
-    <section class="sec">
-      <h2>Bonjour ${esc(prof?.name || me.email)}</h2>
-      <div class="muted">${fmtDate(currentDay)}</div>
     </section>
+  `;
+}
 
-    <section class="sec">
-      <div class="grid3">
-        <div class="card">
-          <div class="muted">Entrée</div>
-          <div class="stat">${fmtTime(d.in_at)}</div>
-          <div class="muted">${workedIn}</div>
+function rManagerDay(emp){
+  const row=tdays.find(x=>x.day===teamDay);
+  const d=row?.data||{
+    brk:[],
+    tasks:[],
+    loc:'',
+    note:''
+  };
+
+  const s=stats(d,false,emp.start||'08:00');
+  const dayReview=trev[teamDay]?.['']||{};
+
+  return `
+    <section class="sec hero">
+      <div class="st">
+        <div>
+          <b>${esc(emp.name||'')}</b>
+          <span class="sub">${teamDay}</span>
         </div>
 
-        <div class="card">
-          <div class="muted">Sortie</div>
-          <div class="stat">${fmtTime(d.out_at)}</div>
-          <div class="muted">${workedOut}</div>
-        </div>
+        <span class="hn">${dur(s.work)}</span>
+      </div>
 
-        <div class="card">
-          <div class="muted">Validation</div>
-          <div class="stat">
-            ${d.status==="validated"?"✓":"—"}
-          </div>
-          <div class="muted">
-            ${d.status==="validated"?"Validé":"En attente"}
-          </div>
-        </div>
+      <div class="bar" style="margin-top:10px">
+        <button data-a="backday">‹ Journées</button>
       </div>
     </section>
 
     <section class="sec">
       <h2>Présence</h2>
-      <div class="bar">
-        <button class="p"
-          data-a="clockin"
-          ${d.in_at?"disabled":""}>
-          ▶ Commencer le travail
-        </button>
-
-        <button
-          data-a="clockout"
-          ${!d.in_at || d.out_at?"disabled":""}>
-          ■ Fin de travail
-        </button>
-      </div>
-    </section>
-
-    <section class="sec">
-      <h2>Résumé du jour</h2>
-      <div class="muted">
-        ${d.tasks ? esc(d.tasks) : "Aucune tâche enregistrée."}
-      </div>
-
-      <div style="height:10px"></div>
-
-      <div class="muted">
-        ${d.notes ? esc(d.notes) : "Aucune note."}
-      </div>
-    </section>
-  `;
-}
-
-/* =========================================================
-   DAY
-   ========================================================= */
-
-function renderToday(){
-  const d=getDay();
-
-  $("headSub").textContent=`Journée du ${fmtDate(currentDay)}`;
-
-  $("app").innerHTML=`
-    <section class="sec">
-      <h2>Journée de travail</h2>
-
-      <div class="lab">Date</div>
-      <input id="dayDate" type="date" value="${esc(currentDay)}">
 
       <div class="grid">
-        <div class="card">
-          <div class="muted">Heure d'entrée</div>
-          <strong>${fmtTime(d.in_at)}</strong>
+        <div>
+          <b>${hm(d.inAt)}</b>
+          <span>Entrée</span>
         </div>
 
-        <div class="card">
-          <div class="muted">Heure de sortie</div>
-          <strong>${fmtTime(d.out_at)}</strong>
+        <div>
+          <b>${hm(d.outAt)}</b>
+          <span>Sortie</span>
+        </div>
+
+        <div>
+          <b>${dur(s.breaks)}</b>
+          <span>Pause</span>
+        </div>
+
+        <div>
+          <b>${s.pct}%</b>
+          <span>Tâches</span>
         </div>
       </div>
+
+      ${
+        d.loc
+        ? `<div class="sub">Lieu: ${esc(d.loc)}</div>`
+        : ''
+      }
+
+      ${
+        d.note
+        ? `<div class="adm">${esc(d.note)}</div>`
+        : ''
+      }
     </section>
 
     <section class="sec">
-      <h2>Tâches réalisées</h2>
-      <textarea id="tasks"
-        placeholder="Décrivez les tâches réalisées aujourd'hui...">${esc(d.tasks)}</textarea>
+      <h2>Tâches du salarié</h2>
+
+      ${
+        (d.tasks||[]).length
+        ? (d.tasks||[]).map((t,i)=>managerTaskHTML(t,teamDay,i)).join('')
+        : `<div class="em">Aucune tâche.</div>`
+      }
     </section>
 
     <section class="sec">
-      <h2>Notes / observations</h2>
-      <textarea id="notes"
-        placeholder="Difficultés, remarques, matériel, incidents...">${esc(d.notes)}</textarea>
-    </section>
+      <h2>Validation responsable</h2>
 
-    <section class="sec">
-      <div class="bar">
-        <button class="p" data-a="saveDay">Enregistrer</button>
-        <button data-a="clockin" ${d.in_at?"disabled":""}>▶ Entrée</button>
-        <button data-a="clockout" ${!d.in_at||d.out_at?"disabled":""}>■ Sortie</button>
-      </div>
-    </section>
+      <div class="lab">Commentaire</div>
 
-    <section class="sec">
-      <h3>Photos</h3>
-      <div class="muted">
-        Vous pourrez ajouter ici les photos liées à la tâche.
-      </div>
-      <div style="height:8px"></div>
-      <input id="photoInput" type="file" accept="image/*" capture="environment">
-      <div id="photoStatus"></div>
+      <textarea id="mdaynote" placeholder="Commentaire du responsable...">${esc(dayReview.note||'')}</textarea>
+
+      <button class="p big" data-a="mvalid">
+        ${dayReview.validated_at?'Mettre à jour la validation':'Valider la journée'}
+      </button>
+
+      ${
+        dayReview.validated_at
+        ? `<div class="sub" style="margin-top:8px">
+             Validée par ${esc(dayReview.manager_name||prof?.name||'')}
+             · ${new Date(dayReview.validated_at).toLocaleString('fr-FR')}
+           </div>`
+        : ''
+      }
     </section>
   `;
 }
 
-/* =========================================================
-   SAVE DAY
-   ========================================================= */
+function managerTaskHTML(t,k,i){
+  const id=String(t.id??i);
+  const rv=trev[k]?.[id]||{};
 
-async function saveDay(extra={}){
-  if(!me) return;
+  const photos=(t.p||[]).map(path=>`
+    <div>
+      <img
+        data-photo="${esc(path)}"
+        alt=""
+        data-a="zm"
+        data-path="${esc(path)}"
+      >
+    </div>
+  `).join('');
 
-  const day=$("dayDate")?.value || currentDay;
-  const old=getDay(day);
+  return `
+    <div class="t s${Number(t.s)||0}">
+      <div class="th" style="cursor:default">
+        <span class="pr pr${Number(t.pr)||0}"></span>
+        <span class="n">${esc(t.n||'Nouvelle tâche')}</span>
+        <span class="bd">${ST[Number(t.s)||0]}</span>
+      </div>
 
-  const tasks=$("tasks")?.value ?? old.tasks ?? "";
-  const notes=$("notes")?.value ?? old.notes ?? "";
+      <div class="tb" style="display:block">
 
-  /*
-    First try the common schema.
-    If your existing schema has a different field name,
-    the error is shown instead of freezing the application.
-  */
+        ${
+          t.cat
+          ? `<div class="sub">Catégorie: ${esc(t.cat)}</div>`
+          : ''
+        }
 
-  const payload={
-    user_id:me.id,
-    day,
-    notes,
-    tasks,
-    ...extra
-  };
+        ${
+          t.mat
+          ? `<div class="sub">Référence: ${esc(t.mat)}</div>`
+          : ''
+        }
 
-  let r;
+        ${
+          t.note
+          ? `<div style="margin-top:6px">${esc(t.note)}</div>`
+          : ''
+        }
 
-  if(old.id){
-    r=await sb
-      .from("days")
-      .update(payload)
-      .eq("id",old.id)
-      .select()
-      .single();
-  }else{
-    r=await sb
-      .from("days")
-      .insert(payload)
-      .select()
-      .single();
+        <div class="sub" style="margin-top:6px">
+          Début: ${hm(t.st)} · Fin: ${hm(t.en)}
+        </div>
+
+        <div class="ph">${photos}</div>
+
+        <div class="adm">
+          <div class="lab">Observation du responsable</div>
+
+          <textarea data-mnote placeholder="Ajouter une observation...">${esc(rv.note||'')}</textarea>
+
+          <button
+            class="p"
+            style="margin-top:8px;width:100%"
+            data-a="mrev"
+            data-id="${esc(id)}"
+          >
+            Enregistrer l'observation
+          </button>
+        </div>
+
+        ${
+          rv.validated_at
+          ? `<div class="sub" style="margin-top:6px">
+               Dernière validation: ${new Date(rv.validated_at).toLocaleString('fr-FR')}
+             </div>`
+          : ''
+        }
+      </div>
+    </div>
+  `;
+}
+
+function buildReport(){
+  const d=day(cur);
+  const s=stats(d,false);
+
+  const lines=[];
+
+  lines.push('JOURNAL DE TRAVAIL');
+  lines.push('==================');
+  lines.push('');
+  lines.push('Employé : '+(prof?.name||''));
+  lines.push('Matricule : '+(prof?.matricule||''));
+  lines.push('Date : '+cur);
+  lines.push('');
+
+  lines.push('PRÉSENCE');
+  lines.push('Entrée : '+hm(d.inAt));
+  lines.push('Sortie : '+hm(d.outAt));
+  lines.push('Temps travaillé : '+dur(s.work));
+  lines.push('Pause : '+dur(s.breaks));
+  lines.push('');
+
+  if(d.loc){
+    lines.push('Lieu : '+d.loc);
+    lines.push('');
   }
 
+  lines.push('TÂCHES');
+  lines.push('------');
+
+  (d.tasks||[]).forEach((t,i)=>{
+    lines.push(
+      `${i+1}. ${t.n||'Sans titre'} — ${ST[Number(t.s)||0]}`
+    );
+
+    if(t.cat)lines.push('   Catégorie : '+t.cat);
+    if(t.mat)lines.push('   Référence : '+t.mat);
+    if(t.note)lines.push('   Note : '+t.note);
+
+    lines.push(
+      '   Début : '+hm(t.st)+' · Fin : '+hm(t.en)
+    );
+  });
+
+  if(!(d.tasks||[]).length){
+    lines.push('Aucune tâche.');
+  }
+
+  lines.push('');
+
+  if(d.note){
+    lines.push('REMARQUE');
+    lines.push('--------');
+    lines.push(d.note);
+    lines.push('');
+  }
+
+  const rv=R(cur,'');
+
+  if(rv.validated_at){
+    lines.push('VALIDATION');
+    lines.push('----------');
+    lines.push(
+      'Validée par : '+(rv.manager_name||'Responsable')
+    );
+    lines.push(
+      'Date : '+new Date(rv.validated_at).toLocaleString('fr-FR')
+    );
+
+    if(rv.note){
+      lines.push('Commentaire : '+rv.note);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+function pickPhoto(id,capture=false){
+  const input=document.createElement('input');
+
+  input.type='file';
+  input.accept='image/*';
+  input.multiple=true;
+
+  if(capture){
+    input.capture='environment';
+  }
+
+  input.onchange=async()=>{
+    const files=[...(input.files||[])];
+
+    if(!files.length)return;
+
+    for(const file of files){
+      await uploadPhoto(id,file);
+    }
+
+    render();
+  };
+
+  input.click();
+}
+
+async function uploadPhoto(taskId,file){
+  if(!me)return;
+
+  const d=day(cur);
+  const t=(d.tasks||[]).find(x=>String(x.id)===String(taskId));
+
+  if(!t){
+    toast('Tâche introuvable');
+    return;
+  }
+
+  t.p=t.p||[];
+
+  const safe=file.name
+    .replace(/[^a-zA-Z0-9._-]/g,'_')
+    .slice(-80);
+
+  const path=
+    me.id+'/'+cur+'/'+
+    String(taskId)+'-'+
+    Date.now()+'-'+
+    safe;
+
+  const r=await sb.storage
+    .from('photos')
+    .upload(path,file,{
+      upsert:false,
+      contentType:file.type||'image/jpeg'
+    });
+
   if(r.error){
-    console.error("SAVE DAY ERROR",r.error);
+    toast('Erreur photo: '+r.error.message);
+    return;
+  }
 
-    /*
-      Keep the local data so the interface remains usable.
-    */
-    days[day]={
-      ...old,
-      ...payload
-    };
+  t.p.push(path);
 
-    toast("Données conservées localement — erreur base de données");
-    showError(
-      "Erreur lors de l'enregistrement",
-      r.error.message
+  await save(cur);
+
+  toast('Photo ajoutée');
+}
+
+async function deletePhoto(taskId,path){
+  const d=day(cur);
+  const t=(d.tasks||[]).find(x=>String(x.id)===String(taskId));
+
+  if(!t)return;
+
+  t.p=(t.p||[]).filter(x=>x!==path);
+
+  const r=await sb.storage
+    .from('photos')
+    .remove([path]);
+
+  if(r.error){
+    toast('Erreur suppression photo');
+  }
+
+  delete urls[path];
+
+  await save(cur);
+
+  render();
+}
+
+async function addTask(){
+  const d=day(cur);
+
+  d.tasks=d.tasks||[];
+
+  const id=
+    Date.now().toString(36)+
+    Math.random().toString(36).slice(2,7);
+
+  d.tasks.push({
+    id,
+    n:'',
+    s:0,
+    pr:0,
+    cat:'',
+    mat:'',
+    note:'',
+    st:null,
+    en:null,
+    p:[]
+  });
+
+  open.add(id);
+
+  await save(cur);
+
+  render();
+}
+
+async function setStatus(id,v){
+  const d=day(cur);
+
+  const t=(d.tasks||[]).find(
+    x=>String(x.id)===String(id)
+  );
+
+  if(!t)return;
+
+  v=Number(v);
+
+  t.s=v;
+
+  if(v===1&&!t.st){
+    t.st=new Date().toISOString();
+  }
+
+  if(v===2){
+    if(!t.st)t.st=new Date().toISOString();
+    t.en=new Date().toISOString();
+  }
+
+  if(v<2){
+    t.en=null;
+  }
+
+  await save(cur);
+
+  render();
+}
+
+async function startWork(){
+  const d=day(cur);
+
+  if(!d.inAt){
+    d.inAt=new Date().toISOString();
+    d.outAt=null;
+    await save(cur);
+    render();
+  }
+}
+
+async function stopWork(){
+  const d=day(cur);
+
+  if(!d.inAt){
+    toast('La journée n’a pas commencé');
+    return;
+  }
+
+  d.outAt=new Date().toISOString();
+
+  const running=(d.brk||[]).find(x=>x.s&&!x.e);
+
+  if(running){
+    running.e=d.outAt;
+  }
+
+  await save(cur);
+  render();
+}
+
+async function breakToggle(){
+  const d=day(cur);
+
+  d.brk=d.brk||[];
+
+  const running=d.brk.find(x=>x.s&&!x.e);
+
+  if(running){
+    running.e=new Date().toISOString();
+  }else{
+    d.brk.push({
+      s:new Date().toISOString(),
+      e:null
+    });
+  }
+
+  await save(cur);
+  render();
+}
+
+async function cmd(){
+  const input=$('#quickCmd');
+
+  if(!input)return;
+
+  const text=input.value.trim();
+
+  if(!text)return;
+
+  const d=day(cur);
+
+  d.tasks=d.tasks||[];
+
+  const id=
+    Date.now().toString(36)+
+    Math.random().toString(36).slice(2,7);
+
+  d.tasks.push({
+    id,
+    n:text,
+    s:0,
+    pr:0,
+    cat:'',
+    mat:'',
+    note:'',
+    st:null,
+    en:null,
+    p:[]
+  });
+
+  open.add(id);
+
+  input.value='';
+
+  await save(cur);
+  render();
+}
+
+function quickBox(){
+  return `
+    <section class="sec">
+      <h2>Ajouter rapidement</h2>
+
+      <div class="bar">
+        <input id="quickCmd" placeholder="Écrire une tâche...">
+        <button class="p" data-a="cmd">Ajouter</button>
+      </div>
+    </section>
+  `;
+}
+
+function updateTaskField(el){
+  const box=el.closest('.t');
+
+  if(!box)return;
+
+  const id=box.dataset.task;
+  const field=el.dataset.f;
+
+  const d=day(cur);
+
+  const t=(d.tasks||[]).find(
+    x=>String(x.id)===String(id)
+  );
+
+  if(!t)return;
+
+  let value=el.value;
+
+  if(field==='pr'){
+    value=Number(value)||0;
+  }
+
+  t[field]=value;
+
+  save(cur);
+}
+
+async function handleClick(e){
+  const b=e.target.closest('[data-a],[data-v]');
+
+  if(!b)return;
+
+  if(b.closest('.nav')&&b.dataset.v){
+    view=b.dataset.v;
+
+    if(view!=='team'){
+      teamSel=null;
+      teamDay=null;
+    }
+
+    render();
+    return;
+  }
+
+  const a=b.dataset.a;
+
+  if(!me){
+
+    if(a==='li'){
+      const email=$('#em')?.value.trim();
+      const password=$('#pw')?.value||'';
+
+      if(!email||!password){
+        toast('Email et mot de passe requis');
+        return;
+      }
+
+      const r=await sb.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if(r.error){
+        $('#loginMsg').textContent=r.error.message;
+        return;
+      }
+
+      await init();
+      return;
+    }
+
+    if(a==='su'){
+      const name=$('#sn')?.value.trim();
+      const email=$('#se')?.value.trim();
+      const password=$('#sp')?.value||'';
+
+      if(!email||!password){
+        toast('Email et mot de passe requis');
+        return;
+      }
+
+      if(password.length<6){
+        toast('Mot de passe: 6 caractères minimum');
+        return;
+      }
+
+      const r=await sb.auth.signUp({
+        email,
+        password,
+        options:{
+          data:{name}
+        }
+      });
+
+      if(r.error){
+        $('#signupMsg').textContent=r.error.message;
+        return;
+      }
+
+      if(r.data.session){
+        await init();
+      }else{
+        $('#signupMsg').textContent=
+          'Compte créé. Vérifiez votre email si la confirmation est activée.';
+      }
+
+      return;
+    }
+
+    return;
+  }
+
+  if(a==='in'){
+    await startWork();
+    return;
+  }
+
+  if(a==='out'){
+    await stopWork();
+    return;
+  }
+
+  if(a==='bs'){
+    await breakToggle();
+    return;
+  }
+
+  if(a==='td'){
+    view='today';
+    cur=today();
+    render();
+    return;
+  }
+
+  if(a==='add'){
+    await addTask();
+    return;
+  }
+
+  if(a==='cmd'){
+    await cmd();
+    return;
+  }
+
+  if(a==='tg'){
+    const box=b.closest('.t');
+
+    if(box){
+      const id=box.dataset.task;
+
+      if(open.has(id)){
+        open.delete(id);
+      }else{
+        open.add(id);
+      }
+
+      render();
+    }
+
+    return;
+  }
+
+  if(a==='set'){
+    await setStatus(
+      b.dataset.id,
+      b.dataset.v
     );
     return;
   }
 
-  const nd=normalizeDay(r.data);
-  days[day]=nd;
+  if(a==='del'){
+    if(!confirm('Supprimer cette tâche ?'))return;
 
-  currentDay=day;
-  toast("Enregistré");
-  render();
-}
+    const d=day(cur);
 
-async function clockIn(){
-  const d=getDay(currentDay);
+    d.tasks=(d.tasks||[]).filter(
+      x=>String(x.id)!==String(b.dataset.id)
+    );
 
-  if(d.in_at){
-    toast("Entrée déjà enregistrée");
+    open.delete(String(b.dataset.id));
+
+    await save(cur);
+    render();
     return;
   }
 
-  await saveDay({
-    in_at:new Date().toISOString()
-  });
-}
-
-async function clockOut(){
-  const d=getDay(currentDay);
-
-  if(!d.in_at){
-    toast("Vous devez d'abord pointer l'entrée");
+  if(a==='cam'){
+    pickPhoto(b.dataset.id,true);
     return;
   }
 
-  if(d.out_at){
-    toast("Sortie déjà enregistrée");
+  if(a==='gal'){
+    pickPhoto(b.dataset.id,false);
     return;
   }
 
-  await saveDay({
-    out_at:new Date().toISOString()
-  });
-}
-
-/* =========================================================
-   HISTORY
-   ========================================================= */
-
-function renderHistory(){
-  $("headSub").textContent="Historique";
-
-  const list=Object.values(days)
-    .sort((a,b)=>String(b.day).localeCompare(String(a.day)));
-
-  $("app").innerHTML=`
-    <section class="sec">
-      <h2>Historique</h2>
-
-      ${
-        !list.length
-        ? `<div class="empty">Aucune journée enregistrée.</div>`
-        : list.map(d=>`
-          <div class="row">
-            <div>
-              <strong>${esc(fmtDate(d.day))}</strong>
-              <div class="muted">
-                ${fmtTime(d.in_at)} → ${fmtTime(d.out_at)}
-              </div>
-            </div>
-
-            <button data-a="openDay" data-day="${esc(d.day)}">
-              Ouvrir
-            </button>
-          </div>
-        `).join("")
-      }
-    </section>
-  `;
-}
-
-/* =========================================================
-   MORE / PROFILE
-   ========================================================= */
-
-function renderMore(){
-  $("headSub").textContent="Profil";
-
-  $("app").innerHTML=`
-    <section class="sec">
-      <h2>Profil</h2>
-
-      <div class="row">
-        <span>Nom</span>
-        <strong>${esc(prof?.name || "—")}</strong>
-      </div>
-
-      <div class="row">
-        <span>E-mail</span>
-        <strong>${esc(me?.email || "—")}</strong>
-      </div>
-
-      <div class="row">
-        <span>Fonction</span>
-        <strong>${esc(prof?.job || "—")}</strong>
-      </div>
-
-      <div class="row">
-        <span>Rôle</span>
-        <span class="badge">
-          ${prof?.role==="manager"?"Manager":"Employee"}
-        </span>
-      </div>
-    </section>
-
-    <section class="sec">
-      <h2>Compte</h2>
-      <button class="d" data-a="logout">Se déconnecter</button>
-    </section>
-  `;
-}
-
-/* =========================================================
-   MANAGER
-   ========================================================= */
-
-async function loadTeam(){
-  if(!me || prof?.role!=="manager") return;
-
-  const r=await sb
-    .from("profiles")
-    .select("*")
-    .eq("role","employee")
-    .order("name",{ascending:true});
-
-  if(r.error){
-    console.error(r.error);
-    team=[];
+  if(a==='rp'){
+    await deletePhoto(
+      b.dataset.id,
+      b.dataset.path
+    );
     return;
   }
 
-  team=r.data || [];
-}
+  if(a==='zm'){
+    const path=b.dataset.path;
 
-function renderTeam(){
-  $("headSub").textContent="Gestion de l'équipe";
+    let url=urls[path];
 
-  if(selectedEmployee && selectedTeamDay){
-    renderTeamDay();
-    return;
-  }
+    if(!url){
+      const r=await sb.storage
+        .from('photos')
+        .createSignedUrl(path,3600);
 
-  if(selectedEmployee){
-    renderEmployeeDays();
-    return;
-  }
-
-  $("app").innerHTML=`
-    <section class="sec">
-      <h2>Équipe</h2>
-      <div class="muted">
-        Sélectionnez un technicien pour consulter ses journées.
-      </div>
-
-      <div style="margin-top:10px">
-        ${
-          team.length
-          ? team.map(x=>`
-            <div class="row">
-              <div>
-                <strong>${esc(x.name || x.email || x.id)}</strong>
-                <div class="muted">
-                  ${esc(x.job || "")}
-                </div>
-              </div>
-
-              <button
-                data-a="selectEmployee"
-                data-id="${esc(x.id)}">
-                Ouvrir
-              </button>
-            </div>
-          `).join("")
-          : `<div class="empty">Aucun employé trouvé.</div>`
-        }
-      </div>
-    </section>
-  `;
-}
-
-async function selectEmployee(id){
-  selectedEmployee=team.find(x=>x.id===id) || null;
-  selectedTeamDay=null;
-  selectedEmployeeDays=[];
-
-  if(!selectedEmployee){
-    renderTeam();
-    return;
-  }
-
-  const r=await sb
-    .from("days")
-    .select("*")
-    .eq("user_id",id)
-    .order("day",{ascending:false})
-    .limit(100);
-
-  if(r.error){
-    showError("Erreur de lecture des journées",r.error);
-    return;
-  }
-
-  selectedEmployeeDays=(r.data||[]).map(normalizeDay);
-  renderTeam();
-}
-
-function renderEmployeeDays(){
-  const e=selectedEmployee;
-
-  $("app").innerHTML=`
-    <section class="sec">
-      <div class="bar">
-        <button data-a="backTeam">← Équipe</button>
-      </div>
-
-      <h2 style="margin-top:12px">
-        ${esc(e?.name || e?.email || "")}
-      </h2>
-
-      <div class="muted">
-        ${esc(e?.job || "")}
-      </div>
-    </section>
-
-    <section class="sec">
-      <h3>Journées</h3>
-
-      ${
-        selectedEmployeeDays.length
-        ? selectedEmployeeDays.map(d=>`
-          <div class="row">
-            <div>
-              <strong>${esc(fmtDate(d.day))}</strong>
-              <div class="muted">
-                ${fmtTime(d.in_at)} → ${fmtTime(d.out_at)}
-              </div>
-            </div>
-
-            <button
-              data-a="teamDay"
-              data-day="${esc(d.day)}">
-              Consulter
-            </button>
-          </div>
-        `).join("")
-        : `<div class="empty">Aucune journée enregistrée.</div>`
-      }
-    </section>
-  `;
-}
-
-function renderTeamDay(){
-  const d=selectedTeamDay;
-
-  $("app").innerHTML=`
-    <section class="sec">
-      <div class="bar">
-        <button data-a="backEmployee">← Retour</button>
-      </div>
-
-      <h2 style="margin-top:12px">
-        ${esc(fmtDate(d.day))}
-      </h2>
-
-      <div class="muted">
-        ${esc(selectedEmployee?.name || "")}
-      </div>
-    </section>
-
-    <section class="sec">
-      <div class="grid">
-        <div class="card">
-          <div class="muted">Entrée</div>
-          <strong>${fmtTime(d.in_at)}</strong>
-        </div>
-
-        <div class="card">
-          <div class="muted">Sortie</div>
-          <strong>${fmtTime(d.out_at)}</strong>
-        </div>
-      </div>
-    </section>
-
-    <section class="sec">
-      <h3>Tâches</h3>
-      <div>${esc(d.tasks || "—")}</div>
-    </section>
-
-    <section class="sec">
-      <h3>Notes</h3>
-      <div>${esc(d.notes || "—")}</div>
-    </section>
-
-    <section class="sec">
-      <h3>Validation</h3>
-
-      <div class="bar">
-        <button class="ok"
-          data-a="validateDay"
-          data-id="${esc(d.id)}">
-          ✓ Valider
-        </button>
-      </div>
-    </section>
-  `;
-}
-
-async function validateDay(id){
-  if(!id) return;
-
-  const r=await sb
-    .from("days")
-    .update({status:"validated"})
-    .eq("id",id);
-
-  if(r.error){
-    showError("Impossible de valider la journée",r.error);
-    return;
-  }
-
-  const d=selectedEmployeeDays.find(x=>x.id===id);
-  if(d) d.status="validated";
-
-  if(selectedTeamDay?.id===id){
-    selectedTeamDay.status="validated";
-  }
-
-  toast("Journée validée");
-  renderTeam();
-}
-
-/* =========================================================
-   PHOTOS
-   ========================================================= */
-
-async function uploadPhoto(){
-  const file=$("photoInput")?.files?.[0];
-
-  if(!file){
-    toast("Choisissez une photo");
-    return;
-  }
-
-  if(!me){
-    toast("Non connecté");
-    return;
-  }
-
-  const status=$("photoStatus");
-  if(status) status.innerHTML=`<div class="muted">Téléchargement...</div>`;
-
-  const ext=file.name.split(".").pop() || "jpg";
-  const path=`${me.id}/${currentDay}/${Date.now()}.${ext}`;
-
-  const r=await sb.storage
-    .from("photos")
-    .upload(path,file,{
-      upsert:false,
-      contentType:file.type || "image/jpeg"
-    });
-
-  if(r.error){
-    console.error(r.error);
-    if(status) status.innerHTML=
-      `<div class="error">${esc(r.error.message)}</div>`;
-    return;
-  }
-
-  const s=await sb.storage
-    .from("photos")
-    .createSignedUrl(path,3600);
-
-  if(status){
-    status.innerHTML=`
-      <div class="success">Photo enregistrée.</div>
-      ${s.data?.signedUrl
-        ? `<img class="photo" src="${esc(s.data.signedUrl)}" alt="Photo">`
-        : ""}
-    `;
-  }
-}
-
-/* =========================================================
-   MAIN RENDER
-   ========================================================= */
-
-function render(){
-  try{
-    if(!me){
-      renderLogin();
-      return;
-    }
-
-    renderNav();
-
-    if(currentView==="dash"){
-      renderDashboard();
-      return;
-    }
-
-    if(currentView==="day"){
-      renderToday();
-      return;
-    }
-
-    if(currentView==="history"){
-      renderHistory();
-      return;
-    }
-
-    if(currentView==="more"){
-      renderMore();
-      return;
-    }
-
-    if(currentView==="team" && prof?.role==="manager"){
-      renderTeam();
-      return;
-    }
-
-    currentView="dash";
-    renderDashboard();
-
-  }catch(e){
-    console.error("RENDER ERROR",e);
-    showError("Erreur d'affichage",e);
-  }
-}
-
-/* =========================================================
-   INIT
-   ========================================================= */
-
-async function init(){
-  try{
-    if(!sb){
-      if(!window.supabase){
-        throw new Error(
-          "La bibliothèque Supabase n'a pas été chargée. Vérifiez votre connexion Internet."
-        );
+      if(r.error){
+        toast('Photo indisponible');
+        return;
       }
 
-      sb=window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
+      url=r.data.signedUrl;
+      urls[path]=url;
     }
 
-    const sessionResult=await sb.auth.getSession();
+    $('#lb img').src=url;
+    $('#lb').classList.add('on');
 
-    if(sessionResult.error){
-      throw sessionResult.error;
+    return;
+  }
+
+  if(a==='prev'){
+    const d=new Date(cur+'T12:00:00');
+    d.setDate(d.getDate()-1);
+    cur=ds(d);
+    render();
+    return;
+  }
+
+  if(a==='next'){
+    const d=new Date(cur+'T12:00:00');
+    d.setDate(d.getDate()+1);
+    cur=ds(d);
+    render();
+    return;
+  }
+
+  if(a==='fl'){
+    flt=Number(b.dataset.v);
+    render();
+    return;
+  }
+
+  if(a==='go'){
+    cur=b.dataset.k;
+    view='today';
+    open.clear();
+    render();
+    return;
+  }
+
+  if(a==='rep'){
+    $('#shT').value=buildReport();
+    $('#sh').classList.add('on');
+    return;
+  }
+
+  if(a==='cp'){
+    try{
+      await navigator.clipboard.writeText($('#shT').value);
+      toast('Rapport copié');
+    }catch{
+      $('#shT').select();
+      document.execCommand('copy');
+      toast('Rapport copié');
     }
+    return;
+  }
 
-    const session=sessionResult.data?.session;
+  if(a==='cl'){
+    $('#sh').classList.remove('on');
+    return;
+  }
 
-    if(!session){
-      me=null;
-      prof=null;
-      renderLogin();
-      return;
-    }
-
-    me=session.user;
-
-    prof=await getProfile(me.id);
-
-    /*
-      Never let a missing profile stop the application.
-    */
-    if(!prof){
-      prof={
-        id:me.id,
-        name:me.email || "",
-        role:"employee",
-        start:"08:00",
-        h:8
-      };
-    }
-
-    await loadMyDays();
-
-    if(prof.role==="manager"){
+  if(a==='rf'){
+    if(prof?.role==='manager'){
       await loadTeam();
+    }else{
+      await loadMine();
     }
 
     render();
+    return;
+  }
 
-  }catch(e){
-    console.error("INIT ERROR",e);
+  if(a==='saveprofile'){
+    await saveProf();
+    toast('Profil enregistré');
+    return;
+  }
 
-    $("headSub").textContent="Erreur";
+  if(a==='lo'){
+    await sb.auth.signOut();
+    me=null;
+    prof=null;
+    view='dash';
+    render();
+    return;
+  }
 
-    $("app").innerHTML=`
-      <section class="sec">
-        <h2>Le chargement a rencontré un problème</h2>
+  if(a==='emp'){
+    await openEmp(b.dataset.id);
+    return;
+  }
 
-        <div class="error">${esc(e?.message || e)}</div>
+  if(a==='back'){
+    teamSel=null;
+    teamDay=null;
+    tdays=[];
+    trev=[];
+    tords=[];
+    render();
+    return;
+  }
 
-        <div class="muted" style="margin-top:10px">
-          L'application est bien chargée, mais une opération Supabase
-          a échoué. Cette erreur est affichée ici volontairement afin
-          d'éviter que l'écran reste bloqué sur JT.
-        </div>
+  if(a==='backday'){
+    teamDay=null;
+    render();
+    return;
+  }
 
-        <div class="bar" style="margin-top:14px">
-          <button class="p" data-a="reload">Réessayer</button>
-        </div>
-      </section>
-    `;
+  if(a==='refreshEmp'){
+    if(teamSel){
+      await openEmp(teamSel);
+    }
+    return;
+  }
+
+  if(a==='eday'){
+    teamDay=b.dataset.k;
+    render();
+    return;
+  }
+
+  if(a==='role'){
+    const id=b.dataset.id;
+    const newRole=b.dataset.r;
+
+    const r=await sb.rpc(
+      'set_user_role',
+      {
+        target:id,
+        new_role:newRole
+      }
+    );
+
+    if(r.error){
+      toast('Erreur rôle: '+r.error.message);
+      return;
+    }
+
+    toast('Rôle mis à jour');
+
+    await loadTeam();
+
+    render();
+    return;
+  }
+
+  if(a==='oadd'){
+    const title=$('#ot')?.value.trim();
+    const note=$('#on')?.value.trim();
+    const dayValue=$('#od')?.value||today();
+    const priority=Number($('#op')?.value)||0;
+
+    if(!teamSel){
+      toast('Salarié non sélectionné');
+      return;
+    }
+
+    if(!title){
+      toast('Titre de l’ordre requis');
+      return;
+    }
+
+    const r=await sb
+      .from('orders')
+      .insert({
+        employee_id:teamSel,
+        created_by:me.id,
+        manager_name:prof?.name||'',
+        day:dayValue,
+        title,
+        note,
+        priority,
+        status:0
+      });
+
+    if(r.error){
+      toast('Erreur ordre: '+r.error.message);
+      return;
+    }
+
+    toast('Ordre envoyé');
+
+    await openEmp(teamSel);
+    return;
+  }
+
+  if(a==='os'){
+    const id=b.dataset.id;
+    const v=Number(b.dataset.v);
+
+    const updates={
+      status:v,
+      done_at:v===2?new Date().toISOString():null
+    };
+
+    const r=await sb
+      .from('orders')
+      .update(updates)
+      .eq('id',id);
+
+    if(r.error){
+      toast('Erreur ordre: '+r.error.message);
+      return;
+    }
+
+    if(prof?.role==='manager'&&teamSel){
+      await openEmp(teamSel);
+    }else{
+      const o=ords.find(x=>String(x.id)===String(id));
+
+      if(o){
+        o.status=v;
+        o.done_at=updates.done_at;
+      }
+
+      render();
+    }
+
+    return;
+  }
+
+  if(a==='mvalid'){
+    if(!teamSel||!teamDay)return;
+
+    const note=$('#mdaynote')?.value.trim()||'';
+
+    const r=await sb
+      .from('reviews')
+      .upsert({
+        user_id:teamSel,
+        day:teamDay,
+        task_id:'',
+        note,
+        manager_name:prof?.name||'',
+        validated_at:new Date().toISOString()
+      },{
+        onConflict:'user_id,day,task_id'
+      });
+
+    if(r.error){
+      toast('Erreur validation: '+r.error.message);
+      return;
+    }
+
+    if(!trev[teamDay])trev[teamDay]={};
+
+    trev[teamDay]['']={
+      user_id:teamSel,
+      day:teamDay,
+      task_id:'',
+      note,
+      manager_name:prof?.name||'',
+      validated_at:new Date().toISOString()
+    };
+
+    toast('Journée validée');
+    render();
+    return;
+  }
+
+  if(a==='mrev'){
+    if(!teamSel||!teamDay)return;
+
+    const box=b.closest('.t');
+    const note=box?.querySelector('[data-mnote]')?.value.trim()||'';
+    const id=String(b.dataset.id);
+
+    const r=await sb
+      .from('reviews')
+      .upsert({
+        user_id:teamSel,
+        day:teamDay,
+        task_id:id,
+        note,
+        manager_name:prof?.name||'',
+        validated_at:new Date().toISOString()
+      },{
+        onConflict:'user_id,day,task_id'
+      });
+
+    if(r.error){
+      toast('Erreur observation: '+r.error.message);
+      return;
+    }
+
+    if(!trev[teamDay])trev[teamDay]={};
+
+    trev[teamDay][id]={
+      user_id:teamSel,
+      day:teamDay,
+      task_id:id,
+      note,
+      manager_name:prof?.name||'',
+      validated_at:new Date().toISOString()
+    };
+
+    toast('Observation enregistrée');
+    render();
+    return;
   }
 }
 
-/* =========================================================
-   CLICK HANDLER — ONE ONLY
-   ========================================================= */
-
-document.addEventListener("click",async e=>{
-  const b=e.target.closest("[data-a]");
-  if(!b) return;
-
-  const a=b.dataset.a;
-
+document.addEventListener('click',async e=>{
   try{
-
-    if(a==="login"){
-      await login();
-      return;
-    }
-
-    if(a==="signup"){
-      await signup();
-      return;
-    }
-
-    if(a==="logout"){
-      await logout();
-      return;
-    }
-
-    if(a==="reload"){
-      location.reload();
-      return;
-    }
-
-    if(a==="dash"){
-      currentView="dash";
-      selectedEmployee=null;
-      selectedTeamDay=null;
-      render();
-      return;
-    }
-
-    if(a==="day"){
-      currentView="day";
-      selectedEmployee=null;
-      selectedTeamDay=null;
-      render();
-      return;
-    }
-
-    if(a==="history"){
-      currentView="history";
-      selectedEmployee=null;
-      selectedTeamDay=null;
-      render();
-      return;
-    }
-
-    if(a==="more"){
-      currentView="more";
-      selectedEmployee=null;
-      selectedTeamDay=null;
-      render();
-      return;
-    }
-
-    if(a==="team"){
-      currentView="team";
-      selectedEmployee=null;
-      selectedTeamDay=null;
-      render();
-      return;
-    }
-
-    if(a==="clockin"){
-      await clockIn();
-      return;
-    }
-
-    if(a==="clockout"){
-      await clockOut();
-      return;
-    }
-
-    if(a==="saveDay"){
-      await saveDay();
-      return;
-    }
-
-    if(a==="openDay"){
-      currentDay=b.dataset.day;
-      currentView="day";
-      render();
-      return;
-    }
-
-    if(a==="selectEmployee"){
-      await selectEmployee(b.dataset.id);
-      return;
-    }
-
-    if(a==="backTeam"){
-      selectedEmployee=null;
-      selectedEmployeeDays=[];
-      selectedTeamDay=null;
-      renderTeam();
-      return;
-    }
-
-    if(a==="teamDay"){
-      selectedTeamDay=
-        selectedEmployeeDays.find(x=>x.day===b.dataset.day) || null;
-      renderTeam();
-      return;
-    }
-
-    if(a==="backEmployee"){
-      selectedTeamDay=null;
-      renderTeam();
-      return;
-    }
-
-    if(a==="validateDay"){
-      await validateDay(b.dataset.id);
-      return;
-    }
-
+    await handleClick(e);
   }catch(err){
-    console.error("CLICK ERROR",err);
-    showError("Erreur",err);
+    console.error(err);
+    toast('Une erreur est survenue');
   }
 });
 
-/* =========================================================
-   DATE CHANGE
-   ========================================================= */
+document.addEventListener('input',e=>{
+  const f=e.target.dataset?.f;
 
-document.addEventListener("change",e=>{
-  if(e.target.id==="dayDate"){
-    currentDay=e.target.value || today();
-    renderToday();
+  if(f){
+    updateTaskField(e.target);
+    return;
   }
 
-  if(e.target.id==="photoInput"){
-    uploadPhoto();
+  const dfield=e.target.dataset?.d;
+
+  if(dfield){
+    const d=day(cur);
+    d[dfield]=e.target.value;
+    save(cur);
+    return;
+  }
+
+  const sfield=e.target.dataset?.s;
+
+  if(sfield&&prof){
+    let v=e.target.value;
+
+    if(sfield==='h'){
+      v=Number(v)||8;
+    }
+
+    prof[sfield]=v;
+    return;
   }
 });
 
-/* =========================================================
-   AUTH STATE
-   ========================================================= */
+document.addEventListener('change',async e=>{
+  const dfield=e.target.dataset?.d;
 
-function setupAuthListener(){
-  if(!sb) return;
+  if(dfield){
+    const d=day(cur);
+    d[dfield]=e.target.value;
+    await save(cur);
+    return;
+  }
 
-  sb.auth.onAuthStateChange((event,session)=>{
-    if(event==="SIGNED_OUT"){
+  const sfield=e.target.dataset?.s;
+
+  if(sfield&&prof){
+    let v=e.target.value;
+
+    if(sfield==='h'){
+      v=Number(v)||8;
+    }
+
+    prof[sfield]=v;
+    await saveProf();
+    return;
+  }
+
+  if(e.target.id==='datePick'){
+    cur=e.target.value||today();
+    open.clear();
+    render();
+  }
+});
+
+document.addEventListener('keydown',async e=>{
+  if(e.key==='Enter'&&e.target.id==='quickCmd'){
+    e.preventDefault();
+    await cmd();
+  }
+});
+
+$('#lb').addEventListener('click',e=>{
+  if(e.target.id==='lb'){
+    $('#lb').classList.remove('on');
+  }
+});
+
+$('#sh').addEventListener('click',e=>{
+  if(e.target.id==='sh'){
+    $('#sh').classList.remove('on');
+  }
+});
+
+setInterval(live,1000);
+
+sb.auth.onAuthStateChange((event,session)=>{
+  setTimeout(async()=>{
+    if(event==='SIGNED_OUT'){
       me=null;
       prof=null;
-      days={};
-      renderLogin();
+      render();
+    }else if(event==='SIGNED_IN' || event==='USER_UPDATED'){
+      if(session?.user){
+        await init();
+      }
     }
-
-    if(event==="SIGNED_IN" && session && !me){
-      /*
-        Avoid calling init recursively while Supabase is still
-        processing the auth event.
-      */
-      setTimeout(()=>init(),0);
-    }
-  });
-}
-
-/* =========================================================
-   GLOBAL ERROR PROTECTION
-   ========================================================= */
-
-window.addEventListener("error",e=>{
-  console.error("GLOBAL JS ERROR",e.error || e.message);
-
-  if($("app") && !me){
-    $("app").innerHTML=`
-      <section class="sec">
-        <h2>Erreur JavaScript</h2>
-        <div class="error">${esc(e.message || "Erreur inconnue")}</div>
-        <div class="bar" style="margin-top:12px">
-          <button class="p" data-a="reload">Recharger</button>
-        </div>
-      </section>
-    `;
-  }
+  },0);
 });
 
-window.addEventListener("unhandledrejection",e=>{
-  console.error("UNHANDLED PROMISE",e.reason);
-});
-
-/* =========================================================
-   START
-   ========================================================= */
-
-startClock();
-init().then(()=>{
-  if(sb) setupAuthListener();
-});
+init();
 </script>
 
 </body>
