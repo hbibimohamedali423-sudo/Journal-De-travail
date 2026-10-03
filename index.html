@@ -333,6 +333,71 @@ function shrink(f){return new Promise((ok,no)=>{const r=new FileReader();r.onerr
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me&&prof&&prof.role!=='manager'&&!dirty.size&&view!=='more')loadMine().then(render)});
 setInterval(live,30000);
 render();init();
+  let ords=[],tords=[];
+ 
+async function loadMine(){
+  const a=await sb.from('days').select('day,data').eq('user_id',me.id).order('day',{ascending:false}).limit(90);
+  days={};(a.data||[]).forEach(x=>days[x.day]=x.data);
+  const b=await sb.from('reviews').select('*').eq('user_id',me.id);rev=grp(b.data,{});
+  const o=await sb.from('orders').select('*').eq('employee_id',me.id).order('created_at',{ascending:false}).limit(100);ords=o.data||[];
+}
+async function loadTeam(){
+  const r=await sb.from('profiles').select('*').neq('id',me.id).order('name');
+  if(r.error)toast('Erreur : '+r.error.message);
+  team=r.data||[];
+}
+async function openEmp(id){
+  teamSel=id;teamDay=null;
+  const a=await sb.from('days').select('day,data').eq('user_id',id).order('day',{ascending:false}).limit(60);tdays=a.data||[];
+  const b=await sb.from('reviews').select('*').eq('user_id',id);trev=grp(b.data,{});
+  const c=await sb.from('orders').select('*').eq('employee_id',id).order('created_at',{ascending:false});tords=c.data||[];
+  render();
+}
+ 
+/* Cote employe : ordres de la direction en haut de Accueil et Journal */
+function oHTML(L){
+  return `<section class="sec"><h2>Ordres de la direction <span class="pill">${L.length}</span></h2>${L.map(o=>`<div class="t s${o.status} o"><div class="th"><span class="pr pr${o.priority}"></span><span class="n">${esc(o.title)}</span><span class="bd">${ST[o.status]}</span></div><div class="tb"><div class="sub">${esc(o.manager_name)} · ${o.day} · ${PR[o.priority]}</div><div>${esc(o.note)}</div><div class="seg" style="margin-top:8px">${ST.map((x,i)=>`<button data-a="os" data-id="${o.id}" data-v="${i}" class="${o.status===i?'on':''}">${x}</button>`).join('')}</div></div></div>`).join('')}</section>`;
+}
+const _render=render;
+render=function(){
+  _render();
+  if(me&&prof&&prof.role!=='manager'&&(view==='dash'||view==='today')){
+    const L=ords.filter(o=>o.status<2||o.day===cur);
+    if(L.length)$('#app').insertAdjacentHTML('afterbegin',oHTML(L));
+  }
+};
+ 
+/* Cote responsable : tous les comptes, bouton Nommer/Retirer, formulaire d'ordre */
+const _rTeam=rTeam;
+rTeam=function(){
+  if(!teamSel){
+    return `<section class="sec"><h2>Équipe <span class="pill">${team.length}</span></h2>${team.map(e=>`<div class="h" data-a="emp" data-id="${e.id}"><div><b>${esc(e.name)||'Sans nom'}</b> ${e.role==='manager'?'<span class="tag o">Responsable</span>':''}<div class="sub">${esc(e.email)} ${esc(e.job)}</div></div><button data-a="role" data-id="${e.id}" data-r="${e.role==='manager'?'employee':'manager'}">${e.role==='manager'?'Retirer':'Nommer resp.'}</button></div>`).join('')||'<div class="em">Aucun autre compte pour le moment.</div>'}</section>`;
+  }
+  const h=_rTeam();
+  if(teamDay)return h;
+  const f=`<section class="sec"><h2>Donner un ordre</h2><input id="ot" placeholder="Titre de l'ordre"><textarea id="on" placeholder="Détails (facultatif)" style="margin-top:8px"></textarea><div class="two" style="margin-top:8px"><input type="date" id="od" value="${today()}"><select id="op">${PR.map((x,i)=>`<option value="${i}">${x}</option>`).join('')}</select></div><button class="p big" data-a="oadd">Envoyer l'ordre</button>${tords.map(o=>`<div class="h"><div><b>${esc(o.title)}</b><div class="sub">${o.day} · ${PR[o.priority]}</div></div><span class="bd">${ST[o.status]}</span></div>`).join('')}</section>`;
+  return h.replace('</button>','</button>'+f);
+};
+ 
+/* Actions ajoutees */
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-a]');if(!b||!me)return;
+  const a=b.dataset.a;
+  if(a==='role'){
+    const r=await sb.rpc('set_user_role',{target:b.dataset.id,new_role:b.dataset.r});
+    if(r.error)return toast(/function/i.test(r.error.message)?'Executez schema_v2.sql dans Supabase':'Erreur : '+r.error.message);
+    await loadTeam();render();toast('Rôle mis à jour');
+  }else if(a==='oadd'){
+    const t=$('#ot').value.trim();if(!t)return toast('Titre requis');
+    const r=await sb.from('orders').insert({employee_id:teamSel,day:$('#od').value||today(),title:t,note:$('#on').value.trim(),priority:+$('#op').value,created_by:me.id,manager_name:prof.name||''}).select().single();
+    if(r.error)return toast('Erreur : '+r.error.message);
+    tords.unshift(r.data);render();toast('Ordre envoyé');
+  }else if(a==='os'){
+    const v=+b.dataset.v,r=await sb.from('orders').update({status:v,done_at:v==2?new Date().toISOString():null}).eq('id',b.dataset.id);
+    if(r.error)return toast('Erreur : '+r.error.message);
+    const o=ords.find(x=>x.id==b.dataset.id);if(o)o.status=v;render();
+  }
+});
 </script>
 </body>
 </html>
