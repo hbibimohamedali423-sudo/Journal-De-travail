@@ -332,8 +332,7 @@ function pick(t,cam){
 function shrink(f){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=no;r.onload=()=>{const m=new Image();m.onerror=no;m.onload=()=>{const k=Math.min(1,1200/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=Math.round(m.width*k);c.height=Math.round(m.height*k);c.getContext('2d').drawImage(m,0,0,c.width,c.height);c.toBlob(b=>b?ok(b):no(),'image/jpeg',.72)};m.src=r.result};r.readAsDataURL(f)})}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me&&prof&&prof.role!=='manager'&&!dirty.size&&view!=='more')loadMine().then(render)});
 setInterval(live,30000);
-render();init();
-  let ords=[],tords=[];
+ let ords=[],tords=[];
  
 async function loadMine(){
   const a=await sb.from('days').select('day,data').eq('user_id',me.id).order('day',{ascending:false}).limit(90);
@@ -396,7 +395,8 @@ document.addEventListener('click',async e=>{
     const v=+b.dataset.v,r=await sb.from('orders').update({status:v,done_at:v==2?new Date().toISOString():null}).eq('id',b.dataset.id);
     if(r.error)return toast('Erreur : '+r.error.message);
     const o=ords.find(x=>x.id==b.dataset.id);if(o)o.status=v;render();
-  }
+  render();init();
+   }
 });
 </script>
 </body>
