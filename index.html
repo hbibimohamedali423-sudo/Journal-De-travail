@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Journal">
+<title>Journal de travail</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f1f4f8;--card:#fff;--ink:#0f2233;--mut:#5a6b7b;--line:#d5dde6;--nav:#12304a;--acc:#1d5fa8;--ai:#fff;--ok:#1b7f4b;--run:#a85d00;--bad:#b3261e;--amb:#e3a008;--adm:#fff6dc;--al:#e3c25a}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1722;--card:#13232f;--ink:#e6eef5;--mut:#92a7b8;--line:#25394a;--nav:#0d2236;--acc:#5aa2ee;--ai:#06182a;--ok:#4cc58a;--run:#f0b429;--bad:#ff8a80;--adm:#33290e;--al:#6e5a1a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--nav);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:flex;align-items:center;gap:12px}
+.mono{width:40px;height:40px;border-radius:8px;background:#fff;color:var(--nav);display:grid;place-items:center;font-weight:700}
+header h1{margin:0;font-size:16px;font-weight:600;line-height:1.2}header .sub{color:#b9cbdc}header>div:nth-child(2){flex:1;min-width:0}.clk{font-size:20px;font-weight:600}
+main{max-width:660px;margin:0 auto;padding:12px 14px 96px}
+.sub{font-size:12.5px;color:var(--mut)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;width:100%}
+textarea{min-height:56px;resize:vertical;font-size:14px}
+.adm{background:var(--adm);border:1px solid var(--al);border-radius:6px;padding:6px 8px;margin-top:8px}.adm textarea{background:var(--card)}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0}
+.sec h2{font-size:12px;margin:0 0 10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mut)}
+button{font:inherit;font-weight:500;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 12px}
+button:active{transform:scale(.97)}
+button.p{background:var(--acc);color:var(--ai);border-color:var(--acc);font-weight:600}
+button.d{color:var(--bad)}button.g{border:0;background:none;color:var(--mut);font-size:13px}
+:focus-visible{outline:3px solid var(--amb);outline-offset:1px}
+.bar{display:flex;gap:8px;flex-wrap:wrap}.bar>*{flex:1;min-width:120px}
+.st{display:flex;align-items:center;gap:12px}.dot{width:14px;height:14px;border-radius:50%;background:var(--mut)}.dot.on{background:var(--ok)}.dot.br{background:var(--amb)}
+.st b{font-size:19px;display:block;line-height:1.2}
+.kp{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kp>div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}.kp b{font-size:22px;display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;margin:8px 0}.grid b{display:block;font-size:17px}.grid span{font-size:11.5px;color:var(--mut)}
+.pg{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px 0}.pg i{display:block;height:100%;background:var(--acc);transition:width .4s}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px}.chips button{white-space:nowrap;padding:5px 12px;border-radius:20px;font-size:13px}.chips .on{background:var(--acc);color:var(--ai);border-color:var(--acc)}
+.t{border:1px solid var(--line);border-inline-start:5px solid var(--line);border-radius:8px;margin-top:8px;background:var(--card)}.t.s1{border-inline-start-color:var(--run)}.t.s2{border-inline-start-color:var(--ok)}
+.th{display:flex;gap:8px;align-items:center;padding:10px;cursor:pointer}.th .n{flex:1;font-weight:600}.t.s2 .n{opacity:.65;text-decoration:line-through}
+.bd{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:12px;border:1px solid currentColor;color:var(--mut);white-space:nowrap}.s1 .bd{color:var(--run)}.s2 .bd{color:var(--ok)}
+.pr{width:9px;height:9px;border-radius:50%;background:var(--line)}.pr1{background:var(--amb)}.pr2{background:var(--bad)}
+.tb{display:none;padding:0 10px 12px}.t.o .tb{display:block}
+.lab{font-size:12.5px;color:var(--mut);margin:8px 0 2px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.seg .on{background:var(--acc);color:var(--ai);border-color:var(--acc)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ph{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.ph div{position:relative}.ph img{width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block;background:var(--line)}
+.ph .x{position:absolute;top:2px;inset-inline-start:2px;background:rgba(0,0,0,.65);color:#fff;border:0;border-radius:50%;width:24px;height:24px;padding:0}
+.h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.tag{font-size:11.5px;font-weight:600;color:var(--bad)}.tag.o{color:var(--ok)}
+.nav{position:fixed;bottom:0;inset-inline:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:6}.nav:empty{display:none}
+.nav button{flex:1;border:0;border-radius:0;padding:11px 0;background:none;color:var(--mut);font-size:12.5px;font-weight:600}.nav .on{color:var(--acc);box-shadow:inset 0 3px var(--acc)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:9;padding:12px}.ov.on{display:flex}
+.ov img{max-width:100%;max-height:90%;border-radius:8px}.bx{background:var(--card);padding:12px;border-radius:10px;width:100%;max-width:600px}
+#toast{position:fixed;bottom:76px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:20px;opacity:0;transition:opacity .25s;z-index:10;pointer-events:none}#toast.on{opacity:1}
+.em{text-align:center;color:var(--mut);padding:14px}
+</style>
+</head>
+<body>
+<header><div class="mono" id="mn">JT</div><div><h1 id="ttl">Journal de travail</h1><div class="sub" id="sb"></div></div><div class="clk" id="clk"></div></header>
+<main id="app"></main>
+<nav class="nav" id="nv"></nav>
+<div class="ov" id="lb"><img alt=""></div>
+<div class="ov" id="sh"><div class="bx"><textarea id="shT" readonly style="min-height:240px"></textarea><div class="bar" style="margin-top:8px"><button class="p" data-a="cp">Copier</button><button data-a="cl">Fermer</button></div></div></div>
+<div id="toast"></div>
+<script>
+const SB_URL='https://khyeypvhsumpboskcdny.supabase.co';
+const SB_KEY='sb_publishable_5Hf8Zg1mauJRQRKtMSg99A_HI8vVbH2';
+const $=s=>document.querySelector(s);
+const sb=supabase.createClient(SB_URL,SB_KEY);
+let me=null,prof=null,days={},rev={},view='dash',flt=-1,team=[],teamSel=null,teamDay=null,tdays=[],trev={};
+const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>ds(new Date());let cur=today();
+const open=new Set(),urls={},dirty=new Set(),mt={};
+const hm=t=>t?new Date(t).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'—';
+const dur=m=>Math.floor(m/60)+' h '+String(m%60).padStart(2,'0');
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ST=['Nouvelle','En cours','Terminée'],PR=['Normale','Importante','Urgente'];
+const day=(k=cur)=>{const d=days[k]||(days[k]={});d.brk=d.brk||[];d.tasks=d.tasks||[];d.loc=d.loc||'';d.note=d.note||'';return d};
+const R=(k,t='')=>(rev[k]&&rev[k][t])||{};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)}
+function stats(d,live){
+  if(!d.in)return{net:0,brk:0,late:0};
+  const end=d.out||(live?Date.now():d.in);let b=0;(d.brk||[]).forEach(x=>b+=((x[1]||end)-x[0]));
+  const s=new Date(d.in),[h,m]=((prof&&prof.start)||'08:00').split(':');s.setHours(+h,+m,0,0);
+  return{net:Math.max(0,Math.round((end-d.in-b)/60000)),brk:Math.round(b/60000),late:Math.max(0,Math.round((d.in-s)/60000))};
+}
+
+/* ---- Sauvegarde dans Supabase ---- */
+let tm;
+function save(){dirty.add(cur);clearTimeout(tm);tm=setTimeout(flush,700)}
+async function flush(){
+  for(const k of [...dirty]){dirty.delete(k);
+    const r=await sb.from('days').upsert({user_id:me.id,day:k,data:days[k],updated_at:new Date().toISOString()},{onConflict:'user_id,day'});
+    if(r.error)toast('Erreur : '+r.error.message)}
+}
+let pt;function saveProf(){clearTimeout(pt);pt=setTimeout(async()=>{const p=prof,r=await sb.from('profiles').update({name:p.name,matricule:p.matricule,job:p.job,dep:p.dep,co:p.co,mgr:p.mgr,start:p.start,h:p.h}).eq('id',me.id);if(r.error)toast('Erreur : '+r.error.message)},700)}
+
+/* ---- Chargement ---- */
+const grp=(rows,o)=>{(rows||[]).forEach(x=>{(o[x.day]=o[x.day]||{})[x.task_id]=x});return o};
+async function loadMine(){
+  const a=await sb.from('days').select('day,data').eq('user_id',me.id).order('day',{ascending:false}).limit(90);
+  days={};(a.data||[]).forEach(x=>days[x.day]=x.data);
+  const b=await sb.from('reviews').select('*').eq('user_id',me.id);rev=grp(b.data,{});
+}
+async function loadTeam(){const r=await sb.from('profiles').select('id,name,matricule,job,dep').eq('role','employee').order('name');team=r.data||[]}
+async function openEmp(id){
+  teamSel=id;teamDay=null;
+  const a=await sb.from('days').select('day,data').eq('user_id',id).order('day',{ascending:false}).limit(60);tdays=a.data||[];
+  const b=await sb.from('reviews').select('*').eq('user_id',id);trev=grp(b.data,{});render();
+}
+async function init(){
+  const s=await sb.auth.getSession();
+  if(!s.data.session){me=null;prof=null;return render()}
+  me=s.data.session.user;
+  const p=await sb.from('profiles').select('*').eq('id',me.id).single();
+  prof=p.data||{role:'employee',name:'',start:'08:00',h:8};
+  if(prof.role==='manager'){view='team';await loadTeam()}else{view='dash';await loadMine()}
+  render();
+}
+
+/* ---- Actions de présence ---- */
+function act(a){
+  cur=today();const d=day(),n=Date.now(),ob=d.brk[d.brk.length-1];
+  if(a==='in'){if(d.in)return toast('Arrivée déjà enregistrée');d.in=n;toast('Arrivée enregistrée')}
+  else if(a==='out'){if(!d.in)return toast("Enregistrez d'abord l'arrivée");if(ob&&!ob[1])ob[1]=n;d.out=n;toast('Départ enregistré')}
+  else if(a==='bs'){if(!d.in||d.out)return toast('Pause impossible maintenant');if(ob&&!ob[1])return toast('Pause déjà en cours');d.brk.push([n,null]);toast('Pause commencée')}
+  else if(a==='be'){if(!ob||ob[1])return toast('Aucune pause en cours');ob[1]=n;toast('Retour de pause')}
+  else if(a==='re'){d.out=null;toast('Journée rouverte')}
+  save();render();
+}
+function cmd(v){
+  v=v.trim();if(!v)return;
+  const k=v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const m={'arrivee':'in','arrive':'in','debut':'in','depart':'out','fin':'out','sortie':'out','pause':'bs','retour':'be','reprise':'be'};
+  if(m[k])return act(m[k]);
+  cur=today();const u=v[0]==='!',o={id:Date.now(),t:u?v.slice(1).trim():v,s:0,pr:u?2:0,cat:'',mat:'',n:'',p:[],st:null,en:null};
+  if(!o.t)return;day().tasks.push(o);open.add(o.id);save();render();
+}
+
+/* ---- Écrans ---- */
+function render(){
+  const mg=prof&&prof.role==='manager';
+  $('#nv').innerHTML=!me?'':(mg?[['team','Équipe'],['more','Compte']]:[['dash','Tableau de bord'],['today','Journal'],['hist','Historique'],['more','Compte']]).map(x=>`<button data-v="${x[0]}" class="${view===x[0]?'on':''}">${x[1]}</button>`).join('');
+  $('#ttl').textContent=(prof&&prof.co)||'Journal de travail';
+  $('#mn').textContent=((prof&&(prof.co||prof.name))||'JT').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  $('#app').innerHTML=!me?rLogin():mg?(view==='more'?rMore():rTeam()):({dash:rDash,today:rToday,hist:rHist,more:rMore}[view])();
+  live();hydrate();
+}
+function live(){
+  const n=new Date();$('#clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  $('#sb').textContent=((prof&&prof.name)?prof.name+' · ':'')+n.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  const e=$('#liveNet');if(e&&me)e.textContent=dur(stats(day(),cur===today()).net);
+}
+async function hydrate(){
+  const im=[...document.querySelectorAll('img[data-p]')],need=[...new Set(im.map(i=>i.dataset.p).filter(p=>!urls[p]))];
+  if(need.length){const r=await sb.storage.from('photos').createSignedUrls(need,3600);(r.data||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl})}
+  im.forEach(i=>{if(urls[i.dataset.p])i.src=urls[i.dataset.p]});
+}
+function rLogin(){return `<section class="sec"><h2>Connexion</h2>
+  <div class="lab">E-mail</div><input id="em" type="email" autocomplete="username">
+  <div class="lab">Mot de passe (6 caractères minimum)</div><input id="pw" type="password" autocomplete="current-password">
+  <div class="lab">Nom complet (pour créer un compte)</div><input id="nm" autocomplete="name">
+  <div class="bar" style="margin-top:12px"><button class="p" data-a="li">Se connecter</button><button data-a="su">Créer un compte</button></div>
+  <div class="sub" id="msg" style="margin-top:8px"></div></section>`}
+function btns(d){
+  const ob=d.brk[d.brk.length-1],onb=ob&&!ob[1];
+  if(!d.in)return '<button class="p" data-a="in">Enregistrer l\'arrivée</button>';
+  if(d.out)return '<button data-a="re">Rouvrir la journée</button>';
+  return (onb?'<button class="p" data-a="be">Retour de pause</button>':'<button data-a="bs">Commencer une pause</button>')+'<button class="p" data-a="out">Enregistrer le départ</button>';
+}
+function rDash(){
+  cur=today();const d=day(),s=stats(d,true),ob=d.brk[d.brk.length-1],onb=ob&&!ob[1],tg=(prof.h||8)*60;
+  const [lab,det,c]=!d.in?['Hors service','Aucune arrivée enregistrée','']:d.out?['Journée terminée','Départ à '+hm(d.out),'']:onb?['En pause','Depuis '+hm(ob[0]),'br']:['En service','Depuis '+hm(d.in),'on'];
+  let wt=0;for(let i=0;i<7;i++){const x=new Date();x.setDate(x.getDate()-i);const k=ds(x);if(days[k])wt+=stats(days[k],k===today()).net}
+  const T=d.tasks,dn=T.filter(t=>t.s==2).length,ot=Math.max(0,s.net-tg),r=R(cur);
+  return `<section class="sec"><div class="st"><span class="dot ${c}"></span><div><b>${lab}</b><span class="sub">${det}</span></div></div><div class="bar" style="margin-top:12px">${btns(d)}</div></section>
+  <div class="kp"><div><span class="sub">Temps net aujourd'hui</span><b id="liveNet">${dur(s.net)}</b><div class="pg"><i style="width:${Math.min(100,s.net/tg*100)}%"></i></div></div>
+  <div><span class="sub">7 derniers jours</span><b>${dur(wt)}</b></div>
+  <div><span class="sub">Tâches terminées</span><b>${dn}/${T.length}</b></div>
+  <div><span class="sub">Retard / heures sup.</span><b>${s.late>5?'<span class="tag">'+s.late+' min</span>':ot?'<span class="tag o">+'+dur(ot)+'</span>':'—'}</b></div></div>
+  <section class="sec" style="margin-top:10px"><h2>Validation de la direction</h2><div class="${r.validated_at?'tag o':'sub'}">${r.validated_at?'✔ Validé par '+esc(r.manager_name):'En attente de validation'}</div><button class="g" data-a="rf">↻ Actualiser</button></section>
+  <section class="sec"><h2>Commande rapide</h2><input id="cmd" placeholder="arrivée · pause · retour · départ · ou titre d'une tâche (! = urgente)" enterkeyhint="send"></section>`;
+}
+function rToday(){
+  const d=day(),s=stats(d,cur===today()),T=d.tasks,dn=T.filter(t=>t.s==2).length,r=R(cur);
+  const list=T.filter(t=>flt<0||t.s===flt).sort((a,b)=>b.pr-a.pr||a.s-b.s);
+  return `<div class="two"><input type="date" id="dt" value="${cur}" aria-label="Jour"><button data-a="td">Aujourd'hui</button></div>
+  <section class="sec"><h2>Présence</h2>
+  <div class="grid"><div><b>${hm(d.in)}</b><span>Arrivée</span></div><div><b>${hm(d.out)}</b><span>Départ</span></div><div><b>${s.brk} min</b><span>Pause</span></div><div><b>${dur(s.net)}</b><span>Net</span></div></div>
+  ${s.late>5?`<div class="tag">Retard de ${s.late} min (arrivée prévue ${prof.start})</div>`:''}
+  <div class="bar" style="margin-top:10px">${btns(d)}</div>
+  <div class="lab">Lieu de travail du jour</div><input data-d="loc" value="${esc(d.loc)}" placeholder="Site, chantier, client...">
+  <div class="lab">Note générale</div><textarea data-d="note" placeholder="Résumé de la journée">${esc(d.note)}</textarea>
+  <div class="adm"><div class="lab">Observation de la direction</div><div>${esc(r.note)||'—'}</div><div class="${r.validated_at?'tag o':'sub'}">${r.validated_at?'✔ Validé par '+esc(r.manager_name)+' le '+new Date(r.validated_at).toLocaleDateString('fr-FR'):'En attente de validation'}</div></div></section>
+  <section class="sec"><h2>Tâches (${dn}/${T.length})</h2><div class="pg"><i style="width:${T.length?dn/T.length*100:0}%"></i></div>
+  <input id="cmd" placeholder="Nouvelle tâche (! devant = urgente)" enterkeyhint="send" style="margin:6px 0">
+  <div class="chips">${[['Toutes',-1],...ST.map((x,i)=>[x,i])].map(([l,v])=>`<button data-a="fl" data-v="${v}" class="${flt===v?'on':''}">${l}</button>`).join('')}</div>
+  ${list.length?list.map(tHTML).join(''):'<div class="em">Aucune tâche ici.</div>'}</section>
+  <button class="p" style="width:100%" data-a="rep">Rapport du jour (copier)</button>`;
+}
+function tHTML(t){
+  const tm=t.st?`Débutée à ${hm(t.st)}`+(t.en?` · terminée à ${hm(t.en)} · ${dur(Math.round((t.en-t.st)/60000))}`:''):'Pas encore débutée',rn=R(cur,String(t.id)).note;
+  return `<div class="t s${t.s}${open.has(t.id)?' o':''}" data-id="${t.id}">
+  <div class="th" data-a="tg"><span class="pr pr${t.pr}"></span><span class="n">${esc(t.t)}</span>${t.p.length?`<span class="sub">📷${t.p.length}</span>`:''}<span class="bd">${ST[t.s]}</span></div>
+  <div class="tb"><div class="seg">${ST.map((x,i)=>`<button data-a="set" data-v="${i}" class="${t.s===i?'on':''}">${x}</button>`).join('')}</div>
+  <div class="sub" style="margin-top:6px">${tm}</div>
+  <div class="two"><div><div class="lab">Priorité</div><select data-f="pr">${PR.map((x,i)=>`<option value="${i}"${t.pr===i?' selected':''}>${x}</option>`).join('')}</select></div>
+  <div><div class="lab">Zone / lieu</div><input data-f="cat" value="${esc(t.cat)}"></div></div>
+  <div class="lab">Matériel et outils utilisés</div><input data-f="mat" value="${esc(t.mat)}">
+  <div class="lab">Mes remarques</div><textarea data-f="n" placeholder="Travaux réalisés, problèmes rencontrés">${esc(t.n)}</textarea>
+  <div class="ph">${t.p.map((u,i)=>`<div><img data-p="${u}" alt="Photo" data-a="zm"><button class="x" data-a="rp" data-i="${i}" aria-label="Supprimer la photo">×</button></div>`).join('')}</div>
+  <div class="bar" style="margin-top:8px"><button data-a="cam">📷 Photo</button><button data-a="gal">🖼️ Galerie</button></div>
+  ${rn?`<div class="adm"><div class="lab">Remarque de la direction</div><div>${esc(rn)}</div></div>`:''}
+  <button class="g d" data-a="del">Supprimer la tâche</button></div></div>`;
+}
+function rHist(){
+  const ks=Object.keys(days).filter(k=>days[k].in||(days[k].tasks||[]).length).sort().reverse(),m=today().slice(0,7);let tot=0,dd=0;
+  ks.forEach(k=>{if(k.startsWith(m)){const s=stats(day(k));tot+=s.net;if(s.net)dd++}});
+  return `<section class="sec"><h2>Ce mois-ci</h2><div class="grid" style="grid-template-columns:1fr 1fr"><div><b>${dur(tot)}</b><span>Heures</span></div><div><b>${dd}</b><span>Jours travaillés</span></div></div></section>
+  <section class="sec"><h2>Journées</h2>${ks.map(k=>{const d=days[k],s=stats(d),dn=d.tasks.filter(t=>t.s==2).length;
+  return `<div class="h" data-a="go" data-k="${k}"><div><b>${k}</b> ${R(k).validated_at?'<span class="tag o">✔ validée</span>':''}<div class="sub">${hm(d.in)} → ${hm(d.out)}</div></div><div style="text-align:end"><b>${dur(s.net)}</b><div class="sub">${dn}/${d.tasks.length} tâches</div></div></div>`}).join('')||'<div class="em">Aucune journée enregistrée.</div>'}</section>`;
+}
+function rMore(){
+  const f=(k,l,t='text')=>`<div class="lab">${l}</div><input data-s="${k}" type="${t}" value="${esc(prof[k])}">`,mg=prof.role==='manager';
+  return `<section class="sec"><h2>Compte</h2><div class="sub">${esc(me.email)} · ${mg?'Responsable':'Employé'}</div>${f('name','Nom et prénom')}${f('co','Entreprise')}
+  ${mg?'':`<div class="two"><div>${f('matricule','Matricule')}</div><div>${f('job','Poste')}</div></div><div class="two"><div>${f('dep','Service')}</div><div>${f('mgr','Responsable')}</div></div><div class="two"><div>${f('start','Arrivée prévue','time')}</div><div>${f('h','Objectif (h/jour)','number')}</div></div>`}
+  <button class="d" style="width:100%;margin-top:14px" data-a="lo">Se déconnecter</button></section>`;
+}
+function rTeam(){
+  if(!teamSel)return `<section class="sec"><h2>Employés</h2>${team.map(e=>`<div class="h" data-a="emp" data-id="${e.id}"><div><b>${esc(e.name)||'Sans nom'}</b><div class="sub">${esc(e.job)} ${esc(e.matricule)}</div></div><span>›</span></div>`).join('')||'<div class="em">Aucun employé inscrit.</div>'}</section>`;
+  const e=team.find(x=>x.id===teamSel)||{};
+  if(!teamDay)return `<button data-a="back">‹ Employés</button><section class="sec"><h2>${esc(e.name)}</h2>${tdays.map(x=>{const s=stats(x.data),v=(trev[x.day]||{})[''];return `<div class="h" data-a="tday" data-k="${x.day}"><div><b>${x.day}</b> ${v&&v.validated_at?'<span class="tag o">✔ validée</span>':''}<div class="sub">${hm(x.data.in)} → ${hm(x.data.out)}</div></div><b>${dur(s.net)}</b></div>`}).join('')||'<div class="em">Aucune journée.</div>'}</section>`;
+  const d=(tdays.find(x=>x.day===teamDay)||{}).data||{},s=stats(d),T=d.tasks||[],r=trev[teamDay]||{},v=r['']||{};
+  return `<button data-a="back">‹ Journées</button><section class="sec"><h2>${esc(e.name)} · ${teamDay}</h2>
+  <div class="grid"><div><b>${hm(d.in)}</b><span>Arrivée</span></div><div><b>${hm(d.out)}</b><span>Départ</span></div><div><b>${s.brk} min</b><span>Pause</span></div><div><b>${dur(s.net)}</b><span>Net</span></div></div>
+  ${d.loc?`<div class="sub">Lieu : ${esc(d.loc)}</div>`:''}${d.note?`<div>${esc(d.note)}</div>`:''}
+  <div class="adm"><div class="lab">Observation sur la journée</div><textarea data-m="">${esc(v.note)}</textarea>
+  <button class="${v.validated_at?'p':''}" style="width:100%;margin-top:6px" data-a="visa">${v.validated_at?'✔ Validée — annuler':'Valider la journée'}</button></div></section>
+  ${T.map(t=>`<div class="t s${t.s} o"><div class="th"><span class="pr pr${t.pr}"></span><span class="n">${esc(t.t)}</span><span class="bd">${ST[t.s]}</span></div><div class="tb">
+  <div class="sub">${t.st?hm(t.st)+' → '+hm(t.en):''} ${esc(t.cat)} ${esc(t.mat)}</div><div>${esc(t.n)}</div>
+  <div class="ph">${(t.p||[]).map(p=>`<div><img data-p="${p}" data-a="zm" alt="Photo"></div>`).join('')}</div>
+  <div class="adm"><div class="lab">Remarque de la direction</div><textarea data-m="${t.id}">${esc((r[String(t.id)]||{}).note)}</textarea></div></div></div>`).join('')}`;
+}
+function dRep(k){
+  const d=day(k),s=stats(d),r=R(k);
+  let x=`RAPPORT ${k}\n${prof.co||''}\n${prof.name||''} ${prof.matricule||''} ${prof.job||''}\nArrivée ${hm(d.in)} | Départ ${hm(d.out)} | Pause ${s.brk} min | Net ${dur(s.net)}\n`;
+  d.tasks.forEach((t,i)=>{const q=R(k,String(t.id)).note;x+=`\n${i+1}) ${t.t} [${ST[t.s]}]\n`+(t.st?`   ${hm(t.st)}-${hm(t.en)}\n`:'')+(t.mat?`   Matériel : ${t.mat}\n`:'')+(t.n?`   Remarques : ${t.n}\n`:'')+(t.p.length?`   Photos : ${t.p.length}\n`:'')+(q?`   Direction : ${q}\n`:'')});
+  return x+(r.validated_at?`\nValidé par ${r.manager_name}`:'\nNon validé');
+}
+
+/* ---- Événements ---- */
+const find=el=>{const c=el.closest('.t');return c&&day().tasks.find(t=>t.id==c.dataset.id)};
+async function mrev(task,patch){
+  const row=Object.assign({user_id:teamSel,day:teamDay,task_id:task,manager_name:prof.name||''},patch);
+  const r=await sb.from('reviews').upsert(row,{onConflict:'user_id,day,task_id'});
+  if(r.error)return toast('Erreur : '+r.error.message);
+  const o=(trev[teamDay]=trev[teamDay]||{});o[task]=Object.assign(o[task]||{},row);return 1;
+}
+$('#app').addEventListener('input',e=>{
+  const g=e.target,t=find(g);
+  if(g.dataset.f&&t){t[g.dataset.f]=g.tagName==='SELECT'?+g.value:g.value;save()}
+  else if(g.dataset.d!==undefined&&g.dataset.d){day()[g.dataset.d]=g.value;save()}
+  else if(g.dataset.s){prof[g.dataset.s]=g.dataset.s==='h'?(+g.value||8):g.value;saveProf()}
+  else if(g.dataset.m!==undefined){const k=g.dataset.m;clearTimeout(mt[k]);mt[k]=setTimeout(()=>mrev(k,{note:g.value}),700)}
+});
+$('#app').addEventListener('change',e=>{
+  if(e.target.id==='dt'&&e.target.value){cur=e.target.value;render()}
+  if(e.target.dataset.f==='pr')render();
+});
+$('#app').addEventListener('keydown',e=>{if(e.target.id==='cmd'&&e.key==='Enter'){cmd(e.target.value);e.target.value=''}});
+const msg=m=>{const e=$('#msg');if(e)e.textContent=m};
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-a],[data-v]');if(!b)return;
+  if(b.closest('.nav')){view=b.dataset.v;teamSel=teamDay=null;render();scrollTo(0,0);return}
+  const a=b.dataset.a,t=me&&prof.role!=='manager'?find(b):null;
+  if(a==='li'){const r=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});if(r.error)return msg(r.error.message);init()}
+  else if(a==='su'){const r=await sb.auth.signUp({email:$('#em').value.trim(),password:$('#pw').value,options:{data:{name:$('#nm').value.trim()}}});if(r.error)return msg(r.error.message);r.data.session?init():msg('Compte créé. Vérifiez votre e-mail, puis connectez-vous.')}
+  else if(a==='lo'){await sb.auth.signOut();me=prof=null;render()}
+  else if(['in','out','bs','be','re'].includes(a))act(a);
+  else if(a==='rf'){await loadMine();render();toast('Actualisé')}
+  else if(a==='td'){cur=today();render()}
+  else if(a==='fl'){flt=+b.dataset.v;render()}
+  else if(a==='tg'&&t){open.has(t.id)?open.delete(t.id):open.add(t.id);b.closest('.t').classList.toggle('o')}
+  else if(a==='set'&&t){const v=+b.dataset.v;t.s=v;if(v>0&&!t.st)t.st=Date.now();t.en=v==2?Date.now():null;if(v==0)t.st=null;save();render()}
+  else if(a==='del'&&t){const d=day();sb.storage.from('photos').remove(t.p);d.tasks=d.tasks.filter(x=>x!==t);save();render()}
+  else if(a==='rp'&&t){const p=t.p.splice(+b.dataset.i,1);sb.storage.from('photos').remove(p);save();render()}
+  else if(a==='zm'){$('#lb img').src=b.src;$('#lb').classList.add('on')}
+  else if((a==='cam'||a==='gal')&&t)pick(t,a==='cam');
+  else if(a==='rep'){$('#shT').value=dRep(cur);$('#sh').classList.add('on');$('#shT').select()}
+  else if(a==='cp'){$('#shT').select();try{document.execCommand('copy');navigator.clipboard&&navigator.clipboard.writeText($('#shT').value)}catch(x){}toast('Copié')}
+  else if(a==='cl')$('#sh').classList.remove('on');
+  else if(a==='go'){cur=b.dataset.k;view='today';render();scrollTo(0,0)}
+  else if(a==='emp')openEmp(b.dataset.id);
+  else if(a==='tday'){teamDay=b.dataset.k;render();scrollTo(0,0)}
+  else if(a==='back'){if(teamDay)teamDay=null;else teamSel=null;render()}
+  else if(a==='visa'){const v=(trev[teamDay]||{})['']||{};if(await mrev('',{validated_at:v.validated_at?null:new Date().toISOString()}))render()}
+});
+$('#lb').onclick=()=>$('#lb').classList.remove('on');
+function pick(t,cam){
+  const i=document.createElement('input');i.type='file';i.accept='image/*';if(cam)i.capture='environment';else i.multiple=true;
+  i.onchange=async()=>{toast('Envoi de la photo...');
+    for(const f of i.files){try{const bl=await shrink(f),p=`${me.id}/${cur}/${t.id}-${Date.now()}.jpg`,r=await sb.storage.from('photos').upload(p,bl,{contentType:'image/jpeg'});if(r.error)throw r.error;t.p.push(p)}catch(x){toast('Photo : '+(x.message||'erreur'))}}
+    save();render()};
+  i.click();
+}
+function shrink(f){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=no;r.onload=()=>{const m=new Image();m.onerror=no;m.onload=()=>{const k=Math.min(1,1200/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=Math.round(m.width*k);c.height=Math.round(m.height*k);c.getContext('2d').drawImage(m,0,0,c.width,c.height);c.toBlob(b=>b?ok(b):no(),'image/jpeg',.72)};m.src=r.result};r.readAsDataURL(f)})}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me&&prof&&prof.role!=='manager'&&!dirty.size&&view!=='more')loadMine().then(render)});
+setInterval(live,30000);
+render();init();
+</script>
+</body>
+</html>
